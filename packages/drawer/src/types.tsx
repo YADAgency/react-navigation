@@ -117,6 +117,11 @@ export type DrawerNavigationOptions = {
    * Defaults to `true`
    */
   gestureEnabled?: boolean;
+
+  /**
+   * Whether the item is hidden from the drawer or not.
+   */
+  hidden?: boolean;
 };
 
 export type DrawerContentComponentProps<T = DrawerContentOptions> = T & {

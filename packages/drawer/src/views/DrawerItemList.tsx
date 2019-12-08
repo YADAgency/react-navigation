@@ -33,7 +33,7 @@ export default function DrawerItemList({
 }: Props) {
   return (state.routes.map((route, i) => {
     const focused = i === state.index;
-    const { title, drawerLabel, drawerIcon } = descriptors[route.key].options;
+    const { title, drawerLabel, drawerIcon, hidden } = descriptors[route.key].options;
 
     return (
       <DrawerItem
@@ -47,6 +47,7 @@ export default function DrawerItemList({
         }
         icon={drawerIcon}
         focused={focused}
+        hidden={hidden}
         activeTintColor={activeTintColor}
         inactiveTintColor={inactiveTintColor}
         activeBackgroundColor={activeBackgroundColor}

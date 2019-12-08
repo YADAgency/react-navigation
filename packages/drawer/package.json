@@ -11,7 +11,7 @@
     "material",
     "drawer"
   ],
-  "version": "5.0.0-alpha.24",
+  "version": "5.0.0-alpha.26",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
     "lib"
   ],
   "publishConfig": {
-    "access": "public"
+    "registry":"https://npm.pkg.github.com/"
   },
   "scripts": {
     "prepare": "bob build",

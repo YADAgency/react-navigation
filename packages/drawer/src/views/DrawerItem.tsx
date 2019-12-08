@@ -56,6 +56,10 @@ type Props = {
    * Style object for the wrapper element.
    */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Whether the item is shown in the drawer or not.
+   */
+  hidden?: boolean;
 };
 
 /**
@@ -72,6 +76,7 @@ export default function DrawerItem({
   inactiveBackgroundColor = 'transparent',
   style,
   onPress,
+  hidden,
   ...rest
 }: Props) {
   const { borderRadius = 4 } = StyleSheet.flatten(style || {});
@@ -81,6 +86,10 @@ export default function DrawerItem({
     : inactiveBackgroundColor;
 
   const iconNode = icon ? icon({ size: 24, focused, color }) : null;
+
+  if (hidden) {
+    return null
+  }
 
   return (
     <View

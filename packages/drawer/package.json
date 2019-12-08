@@ -1,5 +1,5 @@
 {
-  "name": "@react-navigation/drawer",
+  "name": "@yadagency/react-navigation-drawer",
   "description": "Drawer navigator component with animated transitions and gesturess",
   "keywords": [
     "react-native-component",
@@ -15,7 +15,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/react-navigation/navigation-ex.git",
+    "url": "https://github.com/YADAgency/navigation-ex.git",
     "directory": "packages/drawer"
   },
   "main": "lib/commonjs/index.js",

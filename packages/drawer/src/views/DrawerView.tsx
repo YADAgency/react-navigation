@@ -138,18 +138,16 @@ export default class DrawerView extends React.PureComponent<Props, State> {
       navigation,
       descriptors,
       drawerPosition,
-      drawerContent,
+      drawerContent: DrawerContent,
       drawerContentOptions,
     } = this.props;
 
-    return drawerContent({
-      ...drawerContentOptions,
-      progress: progress,
-      state: state,
-      navigation: navigation,
-      descriptors: descriptors,
-      drawerPosition: drawerPosition,
-    });
+    return <DrawerContent {...drawerContentOptions}
+      progress={progress}
+      state={state}
+      navigation={navigation}
+      descriptors={descriptors}
+      drawerPosition={drawerPosition} />
   };
 
   private renderContent = () => {

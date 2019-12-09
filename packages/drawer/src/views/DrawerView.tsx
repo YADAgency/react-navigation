@@ -157,16 +157,21 @@ export default class DrawerView extends React.PureComponent<Props, State> {
       state,
       header: Header,
       descriptors,
+      navigation,
     } = this.props
 
     if (!Header) {
       return null
     }
 
-    const shouldHide = !descriptors[state.routes[state.index].key].options.headerShown
+    const headerShown = descriptors[state.routes[state.index].key].options.headerShown
+    const shouldHide = headerShown != null ? !headerShown : false
 
     return (
-      <Header shouldHide={shouldHide}/>
+      <Header shouldHide={shouldHide}
+        state={state}
+        navigation={navigation}
+        descriptors={descriptors} />
     )
   }
 

@@ -16,7 +16,6 @@ import {
   State,
 } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
-import { DrawerHeaderProps } from '../types';
 
 const {
   Clock,

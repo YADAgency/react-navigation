@@ -237,5 +237,8 @@ export type DrawerDescriptorMap = {
 };
 
 export type DrawerHeaderProps = {
+  state: DrawerNavigationState;
+  navigation: NavigationHelpers<ParamListBase>;
+  descriptors: DrawerDescriptorMap;
   shouldHide: boolean;
 };

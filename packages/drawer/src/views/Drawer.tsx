@@ -16,6 +16,7 @@ import {
   State,
 } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
+import { DrawerHeaderProps } from '../types';
 
 const {
   Clock,
@@ -92,6 +93,7 @@ type Props = {
   sceneContainerStyle?: StyleProp<ViewStyle>;
   renderDrawerContent: Renderer;
   renderSceneContent: Renderer;
+  renderHeader: () => React.ReactNode;
   gestureHandlerProps?: React.ComponentProps<typeof PanGestureHandler>;
 };
 
@@ -497,6 +499,7 @@ export default class DrawerView extends React.PureComponent<Props> {
       onGestureRef,
       renderDrawerContent,
       renderSceneContent,
+      renderHeader,
       gestureHandlerProps,
     } = this.props;
 
@@ -550,6 +553,7 @@ export default class DrawerView extends React.PureComponent<Props> {
               style={styles.content}
             >
               {renderSceneContent({ progress: this.progress })}
+              {renderHeader()}
             </View>
             <TapGestureHandler onHandlerStateChange={this.handleTapStateChange}>
               <Animated.View

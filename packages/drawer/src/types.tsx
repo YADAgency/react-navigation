@@ -86,6 +86,10 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
    * You can pass a custom background color for a drawer or a custom width here.
    */
   drawerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Element that will be shown at the top of the screen, under the drawer.
+   */
+  header?: React.ComponentType<DrawerHeaderProps>;
 };
 
 export type DrawerNavigationOptions = {
@@ -122,6 +126,11 @@ export type DrawerNavigationOptions = {
    * Whether the item is hidden from the drawer or not.
    */
   hidden?: boolean;
+
+  /**
+   * Whether the header element is shown or not.
+   */
+  headerShown?: boolean;
 };
 
 export type DrawerContentComponentProps<T = DrawerContentOptions> = T & {
@@ -225,4 +234,8 @@ export type DrawerDescriptor = Descriptor<
 
 export type DrawerDescriptorMap = {
   [key: string]: DrawerDescriptor;
+};
+
+export type DrawerHeaderProps = {
+  shouldHide: boolean;
 };

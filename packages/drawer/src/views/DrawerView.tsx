@@ -142,13 +142,33 @@ export default class DrawerView extends React.PureComponent<Props, State> {
       drawerContentOptions,
     } = this.props;
 
-    return <DrawerContent {...drawerContentOptions}
-      progress={progress}
-      state={state}
-      navigation={navigation}
-      descriptors={descriptors}
-      drawerPosition={drawerPosition} />
+    return (
+      <DrawerContent {...drawerContentOptions}
+        progress={progress}
+        state={state}
+        navigation={navigation}
+        descriptors={descriptors}
+        drawerPosition={drawerPosition} />
+    )
   };
+
+  private renderHeader = () => {
+    const {
+      state,
+      header: Header,
+      descriptors,
+    } = this.props
+
+    if (!Header) {
+      return null
+    }
+
+    const shouldHide = !descriptors[state.routes[state.index].key].options.headerShown
+
+    return (
+      <Header shouldHide={shouldHide}/>
+    )
+  }
 
   private renderContent = () => {
     let { lazy, state, descriptors, unmountInactiveScreens } = this.props;
@@ -231,6 +251,7 @@ export default class DrawerView extends React.PureComponent<Props, State> {
             statusBarAnimation={statusBarAnimation}
             renderDrawerContent={this.renderNavigationView}
             renderSceneContent={this.renderContent}
+            renderHeader={this.renderHeader}
           />
         </DrawerGestureContext.Provider>
       </SafeAreaProviderCompat>
@@ -242,4 +263,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  headerTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  headerBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  }
 });

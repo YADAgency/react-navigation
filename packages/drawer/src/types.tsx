@@ -67,11 +67,7 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
    * Function that returns React element to render as the content of the drawer, for example, navigation items.
    * Defaults to `DrawerContent`.
    */
-<<<<<<< HEAD
   drawerContent: React.ComponentType<DrawerContentComponentProps<T>>;
-=======
-  drawerContent?: (props: DrawerContentComponentProps<T>) => React.ReactNode;
->>>>>>> 6c188addc67343ddd3b9d87cae538e4acab08d02
   /**
    * Options for the content component which will be passed as props.
    */
@@ -130,7 +126,7 @@ export type DrawerNavigationOptions = {
    * Whether the header element is shown or not.
    */
   headerShown?: boolean;
-  
+
   /**
    * Whether this screen should be unmounted when navigating away from it.
    * Defaults to `false`.

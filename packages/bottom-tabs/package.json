@@ -11,7 +11,6 @@
     "tab"
   ],
   "version": "5.0.0",
-  "private": true,
   "license": "MIT",
   "repository": "https://github.com/react-navigation/react-navigation/tree/master/packages/bottom-tabs",
   "main": "lib/commonjs/index.js",

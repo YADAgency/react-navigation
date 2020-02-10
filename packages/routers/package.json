@@ -2,7 +2,6 @@
   "name": "@react-navigation/routers",
   "description": "Routers to help build custom navigators",
   "version": "5.0.0",
-  "private": true,
   "keywords": [
     "react",
     "react-native",

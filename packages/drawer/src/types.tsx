@@ -67,7 +67,7 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
    * Function that returns React element to render as the content of the drawer, for example, navigation items.
    * Defaults to `DrawerContent`.
    */
-  drawerContent: React.ComponentType<DrawerContentComponentProps<T>>;
+  drawerContent?: React.ComponentType<DrawerContentComponentProps<T>>;
   /**
    * Options for the content component which will be passed as props.
    */

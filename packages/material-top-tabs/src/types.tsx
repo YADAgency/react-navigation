@@ -1,4 +1,4 @@
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { TabBar, SceneRendererProps, TabView } from 'react-native-tab-view';
 import {
   ParamListBase,
@@ -6,26 +6,26 @@ import {
   NavigationHelpers,
   Route,
   NavigationProp,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import { TabNavigationState } from '@react-navigation/routers';
 
 export type MaterialTopTabNavigationEventMap = {
   /**
    * Event which fires on tapping on the tab in the tab bar.
    */
-  tabPress: undefined;
+  tabPress: { data: undefined; canPreventDefault: true };
   /**
    * Event which fires on long press on the tab in the tab bar.
    */
-  tabLongPress: undefined;
+  tabLongPress: { data: undefined };
   /**
    * Event which fires when a swipe gesture starts, i.e. finger touches the screen.
    */
-  swipeStart: undefined;
+  swipeStart: { data: undefined };
   /**
    * Event which fires when a swipe gesture ends, i.e. finger leaves the screen.
    */
-  swipeEnd: undefined;
+  swipeEnd: { data: undefined };
 };
 
 export type MaterialTopTabNavigationHelpers = NavigationHelpers<
@@ -86,11 +86,6 @@ export type MaterialTopTabNavigationOptions = {
    * ID to locate this tab button in tests.
    */
   tabBarTestID?: string;
-
-  /**
-   * Boolean indicating whether the tab bar is visible when this screen is active.
-   */
-  tabBarVisible?: boolean;
 };
 
 export type MaterialTopTabDescriptor = Descriptor<
@@ -113,9 +108,15 @@ export type MaterialTopTabNavigationConfig = Partial<
     | 'onSwipeEnd'
     | 'renderScene'
     | 'renderTabBar'
+    | 'renderPager'
     | 'renderLazyPlaceholder'
   >
 > & {
+  /**
+   * Function that returns a React element to use as the pager.
+   * The pager handles swipe gestures and page switching.
+   */
+  pager?: React.ComponentProps<typeof TabView>['renderPager'];
   /**
    * Function that returns a React element to render for routes that haven't been rendered yet.
    * Receives an object containing the route as the prop.
@@ -169,6 +170,10 @@ export type MaterialTopTabBarOptions = Partial<
    */
   iconStyle?: StyleProp<ViewStyle>;
   /**
+   * Style object for the tab label.
+   */
+  labelStyle?: StyleProp<TextStyle>;
+  /**
    * Whether the tab label should be visible. Defaults to `true`.
    */
   showLabel?: boolean;
@@ -176,10 +181,6 @@ export type MaterialTopTabBarOptions = Partial<
    * Whether the tab icon should be visible. Defaults to `false`.
    */
   showIcon?: boolean;
-  /**
-   * Whether the tab label text should capitalized. Defaults to `true`.
-   */
-  upperCaseLabel?: boolean;
   /**
    * Whether label font should scale to respect Text Size accessibility settings.
    */
@@ -189,21 +190,9 @@ export type MaterialTopTabBarOptions = Partial<
 export type MaterialTopTabBarProps = MaterialTopTabBarOptions &
   SceneRendererProps & {
     state: TabNavigationState;
-    navigation: NavigationHelpers<ParamListBase>;
+    navigation: NavigationHelpers<
+      ParamListBase,
+      MaterialTopTabNavigationEventMap
+    >;
     descriptors: MaterialTopTabDescriptorMap;
-    getLabelText: (props: {
-      route: Route<string>;
-    }) =>
-      | ((scene: { focused: boolean; color: string }) => React.ReactNode)
-      | string;
-    getAccessibilityLabel: (props: {
-      route: Route<string>;
-    }) => string | undefined;
-    getTestID: (props: { route: Route<string> }) => string | undefined;
-    onTabPress: (props: {
-      route: Route<string>;
-      preventDefault(): void;
-    }) => void;
-    onTabLongPress: (props: { route: Route<string> }) => void;
-    tabBarPosition: 'top' | 'bottom';
   };

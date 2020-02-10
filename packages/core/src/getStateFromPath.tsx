@@ -1,11 +1,34 @@
 import escape from 'escape-string-regexp';
 import queryString from 'query-string';
-import { NavigationState, PartialState } from './types';
+import { NavigationState, PartialState, InitialState } from './types';
 
 type ParseConfig = Record<string, (value: string) => any>;
 
 type Options = {
-  [routeName: string]: string | { path: string; parse?: ParseConfig };
+  [routeName: string]:
+    | string
+    | {
+        path?: string;
+        parse?: ParseConfig;
+        screens?: Options;
+        initialRouteName?: string;
+      };
+};
+
+type RouteConfig = {
+  match: RegExp;
+  pattern: string;
+  routeNames: string[];
+  parse: ParseConfig | undefined;
+};
+
+type InitialRouteConfig = {
+  initialRouteName: string;
+  connectedRoutes: string[];
+};
+
+type ResultState = PartialState<NavigationState> & {
+  state?: ResultState;
 };
 
 /**
@@ -30,28 +53,17 @@ type Options = {
 export default function getStateFromPath(
   path: string,
   options: Options = {}
-): PartialState<NavigationState> | undefined {
-  // Create a normalized config array which will be easier to use
-  const routeConfig = Object.keys(options).map(key => {
-    const pattern =
-      typeof options[key] === 'string'
-        ? (options[key] as string)
-        : (options[key] as { path: string }).path;
-
-    // Create a regex from the provided path pattern
-    // With the pattern, we can match segements containing params and extract them
-    const match = new RegExp(
-      '^' + escape(pattern).replace(/:[a-z0-9]+/gi, '([^/]+)') + '/?'
-    );
-
-    return {
-      match,
-      pattern,
-      routeName: key,
-      // @ts-ignore
-      parse: options[key].parse,
-    };
-  });
+): ResultState | undefined {
+  if (path === '') {
+    return undefined;
+  }
+  let initialRoutes: InitialRouteConfig[] = [];
+  // Create a normalized configs array which will be easier to use
+  const configs = ([] as RouteConfig[]).concat(
+    ...Object.keys(options).map(key =>
+      createNormalizedConfigs(key, options, [], initialRoutes)
+    )
+  );
 
   let result: PartialState<NavigationState> | undefined;
   let current: PartialState<NavigationState> | undefined;
@@ -62,16 +74,16 @@ export default function getStateFromPath(
     .replace(/\?.*/, ''); // Remove query params which we will handle later
 
   while (remaining) {
-    let routeName;
-    let params;
+    let routeNames: string[] | undefined;
+    let params: Record<string, any> | undefined;
 
     // Go through all configs, and see if the next path segment matches our regex
-    for (const config of routeConfig) {
+    for (const config of configs) {
       const match = remaining.match(config.match);
 
       // If our regex matches, we need to extract params from the path
       if (match) {
-        routeName = config.routeName;
+        routeNames = [...config.routeNames];
 
         const paramPatterns = config.pattern
           .split('/')
@@ -99,21 +111,52 @@ export default function getStateFromPath(
     }
 
     // If we hadn't matched any segments earlier, use the path as route name
-    if (routeName === undefined) {
+    if (routeNames === undefined) {
       const segments = remaining.split('/');
 
-      routeName = decodeURIComponent(segments[0]);
+      routeNames = [decodeURIComponent(segments[0])];
       segments.shift();
       remaining = segments.join('/');
     }
 
-    const state = {
-      routes: [{ name: routeName, params }],
-    };
+    let state: InitialState;
+    let routeName = routeNames.shift() as string;
+    let initialRoute = findInitialRoute(routeName, initialRoutes);
+
+    state = createNestedState(
+      initialRoute,
+      routeName,
+      routeNames.length === 0,
+      params
+    );
+
+    if (routeNames.length > 0) {
+      let nestedState = state;
+
+      while ((routeName = routeNames.shift() as string)) {
+        initialRoute = findInitialRoute(routeName, initialRoutes);
+        nestedState.routes[nestedState.index || 0].state = createNestedState(
+          initialRoute,
+          routeName,
+          routeNames.length === 0,
+          params
+        );
+        if (routeNames.length > 0) {
+          nestedState = nestedState.routes[nestedState.index || 0]
+            .state as InitialState;
+        }
+      }
+    }
 
     if (current) {
-      // The state should be nested inside the route we parsed before
-      current.routes[0].state = state;
+      // The state should be nested inside the deepest route we parsed before
+      while (current?.routes[current.index || 0].state) {
+        current = current.routes[current.index || 0].state;
+      }
+
+      (current as PartialState<NavigationState>).routes[
+        current?.index || 0
+      ].state = state;
     } else {
       result = state;
     }
@@ -128,17 +171,22 @@ export default function getStateFromPath(
   const query = path.split('?')[1];
 
   if (query) {
-    const route = current.routes[0];
+    while (current?.routes[current.index || 0].state) {
+      // The query params apply to the deepest route
+      current = current.routes[current.index || 0].state;
+    }
+
+    const route = (current as PartialState<NavigationState>).routes[
+      current?.index || 0
+    ];
 
     const params = queryString.parse(query);
-    const config = options[route.name]
-      ? (options[route.name] as { parse?: ParseConfig }).parse
-      : undefined;
+    const parseFunction = findParseConfigForRoute(route.name, configs);
 
-    if (config) {
+    if (parseFunction) {
       Object.keys(params).forEach(name => {
-        if (config[name] && typeof params[name] === 'string') {
-          params[name] = config[name](params[name] as string);
+        if (parseFunction[name] && typeof params[name] === 'string') {
+          params[name] = parseFunction[name](params[name] as string);
         }
       });
     }
@@ -147,4 +195,135 @@ export default function getStateFromPath(
   }
 
   return result;
+}
+
+function createNormalizedConfigs(
+  key: string,
+  routeConfig: Options,
+  routeNames: string[] = [],
+  initials: InitialRouteConfig[]
+): RouteConfig[] {
+  const configs: RouteConfig[] = [];
+
+  routeNames.push(key);
+
+  const value = routeConfig[key];
+
+  if (typeof value === 'string') {
+    // If a string is specified as the value of the key(e.g. Foo: '/path'), use it as the pattern
+    if (value !== '') {
+      configs.push(createConfigItem(routeNames, value));
+    }
+  } else if (typeof value === 'object') {
+    // if an object is specified as the value (e.g. Foo: { ... }),
+    // it can have `path` property and
+    // it could have `screens` prop which has nested configs
+    if (value.path && value.path !== '') {
+      configs.push(createConfigItem(routeNames, value.path, value.parse));
+    }
+    if (value.screens) {
+      // property `initialRouteName` without `screens` has no purpose
+      if (value.initialRouteName) {
+        initials.push({
+          initialRouteName: value.initialRouteName,
+          connectedRoutes: Object.keys(value.screens),
+        });
+      }
+      Object.keys(value.screens).forEach(nestedConfig => {
+        const result = createNormalizedConfigs(
+          nestedConfig,
+          value.screens as Options,
+          routeNames,
+          initials
+        );
+        configs.push(...result);
+      });
+    }
+  }
+
+  routeNames.pop();
+
+  return configs;
+}
+
+function createConfigItem(
+  routeNames: string[],
+  pattern: string,
+  parse?: ParseConfig
+): RouteConfig {
+  const match = new RegExp(
+    '^' + escape(pattern).replace(/:[a-z0-9]+/gi, '([^/]+)') + '/?'
+  );
+
+  return {
+    match,
+    pattern,
+    // The routeNames array is mutated, so copy it to keep the current state
+    routeNames: [...routeNames],
+    parse,
+  };
+}
+
+function findParseConfigForRoute(
+  routeName: string,
+  flatConfig: RouteConfig[]
+): ParseConfig | undefined {
+  for (const config of flatConfig) {
+    if (routeName === config.routeNames[config.routeNames.length - 1]) {
+      return config.parse;
+    }
+  }
+  return undefined;
+}
+
+// tries to find an initial route connected with the one passed
+function findInitialRoute(
+  routeName: string,
+  initialRoutes: InitialRouteConfig[]
+): string | undefined {
+  for (const config of initialRoutes) {
+    if (config.connectedRoutes.includes(routeName)) {
+      return config.initialRouteName === routeName
+        ? undefined
+        : config.initialRouteName;
+    }
+  }
+  return undefined;
+}
+
+// returns nested state object with values depending on whether
+// it is the end of state and if there is initialRoute for this level
+function createNestedState(
+  initialRoute: string | undefined,
+  routeName: string,
+  isEmpty: boolean,
+  params?: Record<string, any> | undefined
+): InitialState {
+  if (isEmpty) {
+    if (initialRoute) {
+      return {
+        index: 1,
+        routes: [
+          { name: initialRoute },
+          { name: routeName as string, ...(params && { params }) },
+        ],
+      };
+    } else {
+      return {
+        routes: [{ name: routeName as string, ...(params && { params }) }],
+      };
+    }
+  } else {
+    if (initialRoute) {
+      return {
+        index: 1,
+        routes: [
+          { name: initialRoute },
+          { name: routeName as string, state: { routes: [] } },
+        ],
+      };
+    } else {
+      return { routes: [{ name: routeName as string, state: { routes: [] } }] };
+    }
+  }
 }

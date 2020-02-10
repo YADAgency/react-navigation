@@ -2,12 +2,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@react-navigation/*": [
-        "./packages/*/src",
-        "./packages/*/lib/typescript"
-      ],
-      "use-subscription": ["./typings/use-subscription.d"]
+      "@react-navigation/*": ["./packages/*/src"]
     },
+    "composite": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,

@@ -1,11 +1,11 @@
-import { I18nManager } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Animated } from 'react-native';
+import conditional from '../utils/conditional';
 import {
   StackCardInterpolationProps,
   StackCardInterpolatedStyle,
 } from '../types';
 
-const { cond, add, multiply, interpolate } = Animated;
+const { add, multiply } = Animated;
 
 /**
  * Standard iOS-style slide in from the right.
@@ -13,30 +13,39 @@ const { cond, add, multiply, interpolate } = Animated;
 export function forHorizontalIOS({
   current,
   next,
+  inverted,
   layouts: { screen },
 }: StackCardInterpolationProps): StackCardInterpolatedStyle {
-  const translateFocused = interpolate(current.progress, {
-    inputRange: [0, 1],
-    outputRange: [I18nManager.isRTL ? -screen.width : screen.width, 0],
-  });
+  const translateFocused = multiply(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [screen.width, 0],
+      extrapolate: 'clamp',
+    }),
+    inverted
+  );
+
   const translateUnfocused = next
-    ? interpolate(next.progress, {
-        inputRange: [0, 1],
-        outputRange: [
-          0,
-          multiply(I18nManager.isRTL ? -screen.width : screen.width, -0.3),
-        ],
-      })
+    ? multiply(
+        next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, screen.width * -0.3],
+          extrapolate: 'clamp',
+        }),
+        inverted
+      )
     : 0;
 
-  const overlayOpacity = interpolate(current.progress, {
+  const overlayOpacity = current.progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 0.07],
+    extrapolate: 'clamp',
   });
 
-  const shadowOpacity = interpolate(current.progress, {
+  const shadowOpacity = current.progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 0.3],
+    extrapolate: 'clamp',
   });
 
   return {
@@ -58,12 +67,17 @@ export function forHorizontalIOS({
  */
 export function forVerticalIOS({
   current,
+  inverted,
   layouts: { screen },
 }: StackCardInterpolationProps): StackCardInterpolatedStyle {
-  const translateY = interpolate(current.progress, {
-    inputRange: [0, 1],
-    outputRange: [screen.height, 0],
-  });
+  const translateY = multiply(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [screen.height, 0],
+      extrapolate: 'clamp',
+    }),
+    inverted
+  );
 
   return {
     cardStyle: {
@@ -82,6 +96,7 @@ export function forModalPresentationIOS({
   index,
   current,
   next,
+  inverted,
   layouts: { screen },
   insets,
 }: StackCardInterpolationProps): StackCardInterpolatedStyle {
@@ -90,25 +105,41 @@ export function forModalPresentationIOS({
   const statusBarHeight = insets.top;
   const aspectRatio = screen.height / screen.width;
 
-  const progress = add(current.progress, next ? next.progress : 0);
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
 
-  const translateY = interpolate(progress, {
-    inputRange: [0, 1, 2],
-    outputRange: [
-      screen.height,
-      index === 0 ? 0 : topOffset,
-      (index === 0 ? statusBarHeight : 0) - topOffset * aspectRatio,
-    ],
-  });
+  const translateY = multiply(
+    progress.interpolate({
+      inputRange: [0, 1, 2],
+      outputRange: [
+        screen.height,
+        index === 0 ? 0 : topOffset,
+        (index === 0 ? statusBarHeight : 0) - topOffset * aspectRatio,
+      ],
+    }),
+    inverted
+  );
 
-  const overlayOpacity = interpolate(progress, {
+  const overlayOpacity = progress.interpolate({
     inputRange: [0, 1, 1.0001, 2],
     outputRange: [0, 0.3, 1, 1],
   });
 
   const scale = isLandscape
     ? 1
-    : interpolate(progress, {
+    : progress.interpolate({
         inputRange: [0, 1, 2],
         outputRange: [
           1,
@@ -120,7 +151,7 @@ export function forModalPresentationIOS({
   const borderRadius = isLandscape
     ? 0
     : index === 0
-    ? interpolate(progress, {
+    ? progress.interpolate({
         inputRange: [0, 1, 2],
         outputRange: [0, 0, 10],
       })
@@ -143,18 +174,23 @@ export function forModalPresentationIOS({
  */
 export function forFadeFromBottomAndroid({
   current,
+  inverted,
   layouts: { screen },
   closing,
 }: StackCardInterpolationProps): StackCardInterpolatedStyle {
-  const translateY = interpolate(current.progress, {
-    inputRange: [0, 1],
-    outputRange: [multiply(screen.height, 0.08), 0],
-  });
+  const translateY = multiply(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [screen.height * 0.08, 0],
+      extrapolate: 'clamp',
+    }),
+    inverted
+  );
 
-  const opacity = cond(
+  const opacity = conditional(
     closing,
     current.progress,
-    interpolate(current.progress, {
+    current.progress.interpolate({
       inputRange: [0, 0.5, 0.9, 1],
       outputRange: [0, 0.25, 0.7, 1],
     })
@@ -174,25 +210,42 @@ export function forFadeFromBottomAndroid({
 export function forRevealFromBottomAndroid({
   current,
   next,
+  inverted,
   layouts: { screen },
 }: StackCardInterpolationProps): StackCardInterpolatedStyle {
-  const containerTranslateY = interpolate(current.progress, {
-    inputRange: [0, 1],
-    outputRange: [screen.height, 0],
-  });
-  const cardTranslateYFocused = interpolate(current.progress, {
-    inputRange: [0, 1],
-    outputRange: [multiply(screen.height, 95.9 / 100, -1), 0],
-  });
+  const containerTranslateY = multiply(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [screen.height, 0],
+      extrapolate: 'clamp',
+    }),
+    inverted
+  );
+
+  const cardTranslateYFocused = multiply(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [screen.height * (95.9 / 100) * -1, 0],
+      extrapolate: 'clamp',
+    }),
+    inverted
+  );
+
   const cardTranslateYUnfocused = next
-    ? interpolate(next.progress, {
-        inputRange: [0, 1],
-        outputRange: [0, multiply(screen.height, 2 / 100, -1)],
-      })
+    ? multiply(
+        next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, screen.height * (2 / 100) * -1],
+          extrapolate: 'clamp',
+        }),
+        inverted
+      )
     : 0;
-  const overlayOpacity = interpolate(current.progress, {
+
+  const overlayOpacity = current.progress.interpolate({
     inputRange: [0, 0.36, 1],
     outputRange: [0, 0.1, 0.1],
+    extrapolate: 'clamp',
   });
 
   return {
@@ -218,20 +271,34 @@ export function forScaleFromCenterAndroid({
   next,
   closing,
 }: StackCardInterpolationProps): StackCardInterpolatedStyle {
-  const progress = add(current.progress, next ? next.progress : 0);
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
 
-  const opacity = interpolate(progress, {
+  const opacity = progress.interpolate({
     inputRange: [0, 0.8, 1, 1.2, 2],
     outputRange: [0, 0.5, 1, 0.33, 0],
   });
 
-  const scale = cond(
+  const scale = conditional(
     closing,
-    interpolate(current.progress, {
+    current.progress.interpolate({
       inputRange: [0, 1],
       outputRange: [0.9, 1],
+      extrapolate: 'clamp',
     }),
-    interpolate(progress, {
+    progress.interpolate({
       inputRange: [0, 1, 2],
       outputRange: [0.85, 1, 1.1],
     })
@@ -243,4 +310,8 @@ export function forScaleFromCenterAndroid({
       transform: [{ scale }],
     },
   };
+}
+
+export function forNoAnimation(): StackCardInterpolatedStyle {
+  return {};
 }

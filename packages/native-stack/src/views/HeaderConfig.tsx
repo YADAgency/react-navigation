@@ -1,12 +1,10 @@
 import * as React from 'react';
 import {
-  // @ts-ignore
   ScreenStackHeaderConfig,
-  // @ts-ignore
   ScreenStackHeaderRightView,
   // eslint-disable-next-line import/no-unresolved
 } from 'react-native-screens';
-import { Route } from '@react-navigation/core';
+import { Route, useTheme } from '@react-navigation/native';
 import { NativeStackNavigationOptions } from '../types';
 
 type Props = NativeStackNavigationOptions & {
@@ -14,6 +12,7 @@ type Props = NativeStackNavigationOptions & {
 };
 
 export default function HeaderConfig(props: Props) {
+  const { colors } = useTheme();
   const {
     route,
     title,
@@ -52,17 +51,25 @@ export default function HeaderConfig(props: Props) {
       titleColor={
         headerTitleStyle.color !== undefined
           ? headerTitleStyle.color
-          : headerTintColor
+          : headerTintColor !== undefined
+          ? headerTintColor
+          : colors.text
       }
-      backTitle={headerBackTitleVisible ? headerBackTitle : ''}
+      backTitle={headerBackTitleVisible ? headerBackTitle : ' '}
       backTitleFontFamily={headerBackTitleStyle.fontFamily}
       backTitleFontSize={headerBackTitleStyle.fontSize}
-      color={headerTintColor}
-      gestureEnabled={gestureEnabled === undefined ? true : gestureEnabled}
+      color={headerTintColor !== undefined ? headerTintColor : colors.primary}
+      // Keep this temporarily for compatibility with old versions of screens
+      // @ts-ignore
+      gestureEnabled={gestureEnabled}
       largeTitle={headerLargeTitle}
       largeTitleFontFamily={headerLargeTitleStyle.fontFamily}
       largeTitleFontSize={headerLargeTitleStyle.fontSize}
-      backgroundColor={headerStyle.backgroundColor}
+      backgroundColor={
+        headerStyle.backgroundColor !== undefined
+          ? headerStyle.backgroundColor
+          : colors.card
+      }
     >
       {headerRight !== undefined ? (
         <ScreenStackHeaderRightView>{headerRight()}</ScreenStackHeaderRightView>

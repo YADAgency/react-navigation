@@ -1,23 +1,30 @@
 import * as React from 'react';
 import {
+  View,
   Dimensions,
   StyleSheet,
   I18nManager,
   Platform,
   ScaledSize,
+  BackHandler,
+  NativeEventSubscription,
 } from 'react-native';
 // eslint-disable-next-line import/no-unresolved
 import { ScreenContainer } from 'react-native-screens';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import {
+  PanGestureHandler,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import {
   DrawerNavigationState,
   DrawerActions,
 } from '@react-navigation/routers';
+import { useTheme } from '@react-navigation/native';
 
 import DrawerGestureContext from '../utils/DrawerGestureContext';
 import SafeAreaProviderCompat from './SafeAreaProviderCompat';
 import ResourceSavingScene from './ResourceSavingScene';
-import DrawerContent from './DrawerContent';
+import DefaultDrawerContent from './DrawerContent';
 import Drawer from './Drawer';
 import {
   DrawerDescriptorMap,
@@ -25,17 +32,12 @@ import {
   DrawerNavigationHelpers,
   DrawerContentComponentProps,
 } from '../types';
+import DrawerPositionContext from '../utils/DrawerPositionContext';
 
-type Props = Omit<DrawerNavigationConfig, 'overlayColor'> & {
+type Props = DrawerNavigationConfig & {
   state: DrawerNavigationState;
   navigation: DrawerNavigationHelpers;
   descriptors: DrawerDescriptorMap;
-  overlayColor: string;
-};
-
-type State = {
-  loaded: number[];
-  drawerWidth: number;
 };
 
 const getDefaultDrawerWidth = ({
@@ -59,141 +61,146 @@ const getDefaultDrawerWidth = ({
   return Math.min(smallerAxisSize - appBarHeight, maxWidth);
 };
 
+const GestureHandlerWrapper = GestureHandlerRootView ?? View;
+
 /**
  * Component that renders the drawer.
  */
-export default class DrawerView extends React.PureComponent<Props, State> {
-  static defaultProps = {
-    lazy: true,
-    drawerContent: (props: DrawerContentComponentProps) => (
-      <DrawerContent {...props} />
-    ),
-    drawerPosition: I18nManager.isRTL ? 'right' : 'left',
-    keyboardDismissMode: 'on-drag',
-    overlayColor: 'rgba(0, 0, 0, 0.5)',
-    drawerType: 'front',
-    hideStatusBar: false,
-    statusBarAnimation: 'slide',
-  };
+export default function DrawerView({
+  state,
+  navigation,
+  descriptors,
+  lazy = true,
+  drawerContent: DrawerContent = (props: DrawerContentComponentProps) => (
+    <DefaultDrawerContent {...props} />
+  ),
+  drawerPosition = I18nManager.isRTL ? 'right' : 'left',
+  keyboardDismissMode = 'on-drag',
+  overlayColor = 'rgba(0, 0, 0, 0.5)',
+  drawerType = 'front',
+  hideStatusBar = false,
+  statusBarAnimation = 'slide',
+  drawerContentOptions,
+  drawerStyle,
+  edgeWidth,
+  gestureHandlerProps,
+  minSwipeDistance,
+  sceneContainerStyle,
+  header: Header,
+}: Props) {
+  const [loaded, setLoaded] = React.useState([state.index]);
+  const [drawerWidth, setDrawerWidth] = React.useState(() =>
+    getDefaultDrawerWidth(Dimensions.get('window'))
+  );
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    const { index } = nextProps.state;
+  const drawerGestureRef = React.useRef<PanGestureHandler>(null);
 
-    return {
-      // Set the current tab to be loaded if it was not loaded before
-      loaded: prevState.loaded.includes(index)
-        ? prevState.loaded
-        : [...prevState.loaded, index],
-    };
-  }
+  const { colors } = useTheme();
 
-  state: State = {
-    loaded: [this.props.state.index],
-    drawerWidth: getDefaultDrawerWidth(Dimensions.get('window')),
-  };
+  const isDrawerOpen = Boolean(state.history.find(it => it.type === 'drawer'));
 
-  componentDidMount() {
-    Dimensions.addEventListener('change', this.updateWidth);
-  }
-
-  componentWillUnmount() {
-    Dimensions.removeEventListener('change', this.updateWidth);
-  }
-
-  private drawerGestureRef = React.createRef<PanGestureHandler>();
-
-  private handleDrawerOpen = () => {
-    const { state, navigation } = this.props;
-
+  const handleDrawerOpen = React.useCallback(() => {
     navigation.dispatch({
       ...DrawerActions.openDrawer(),
       target: state.key,
     });
+  }, [navigation, state.key]);
 
-    navigation.emit({ type: 'drawerOpen' });
-  };
-
-  private handleDrawerClose = () => {
-    const { state, navigation } = this.props;
-
+  const handleDrawerClose = React.useCallback(() => {
     navigation.dispatch({
       ...DrawerActions.closeDrawer(),
       target: state.key,
     });
+  }, [navigation, state.key]);
 
-    navigation.emit({ type: 'drawerClose' });
-  };
-
-  private updateWidth = ({ window }: { window: ScaledSize }) => {
-    const drawerWidth = getDefaultDrawerWidth(window);
-
-    if (this.state.drawerWidth !== drawerWidth) {
-      this.setState({ drawerWidth });
+  React.useEffect(() => {
+    if (isDrawerOpen) {
+      navigation.emit({ type: 'drawerOpen' });
+    } else {
+      navigation.emit({ type: 'drawerClose' });
     }
+  }, [isDrawerOpen, navigation]);
+
+  React.useEffect(() => {
+    let subscription: NativeEventSubscription | undefined;
+
+    if (isDrawerOpen) {
+      // We only add the subscription when drawer opens
+      // This way we can make sure that the subscription is added as late as possible
+      // This will make sure that our handler will run first when back button is pressed
+      subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleDrawerClose();
+
+        return true;
+      });
+    }
+
+    return () => subscription?.remove();
+  }, [handleDrawerClose, isDrawerOpen, navigation, state.key]);
+
+  React.useEffect(() => {
+    const updateWidth = ({ window }: { window: ScaledSize }) => {
+      setDrawerWidth(getDefaultDrawerWidth(window));
+    };
+
+    Dimensions.addEventListener('change', updateWidth);
+
+    return () => Dimensions.removeEventListener('change', updateWidth);
+  }, []);
+
+  if (!loaded.includes(state.index)) {
+    setLoaded([...loaded, state.index]);
+  }
+
+  const renderNavigationView = ({ progress }: any) => {
+    return (
+      <DrawerPositionContext.Provider value={drawerPosition}>
+        <DrawerContent
+          {...drawerContentOptions}
+          progress={progress}
+          state={state}
+          navigation={navigation}
+          descriptors={descriptors}
+        />
+      </DrawerPositionContext.Provider>
+    );
   };
 
-  private renderNavigationView = ({ progress }: any) => {
-    const {
-      state,
-      navigation,
-      descriptors,
-      drawerPosition,
-      drawerContent: DrawerContent,
-      drawerContentOptions,
-    } = this.props;
+  const renderHeader = () => {
+    if (!Header) {
+      return null;
+    }
+
+    const headerShown =
+      descriptors[state.routes[state.index].key].options.headerShown;
+    const shouldHide = headerShown != null ? !headerShown : false;
 
     return (
-      <DrawerContent {...drawerContentOptions}
-        progress={progress}
+      <Header
+        shouldHide={shouldHide}
         state={state}
         navigation={navigation}
         descriptors={descriptors}
-        drawerPosition={drawerPosition} />
-    )
+      />
+    );
   };
 
-  private renderHeader = () => {
-    const {
-      state,
-      header: Header,
-      descriptors,
-      navigation,
-    } = this.props
-
-    if (!Header) {
-      return null
-    }
-
-    const headerShown = descriptors[state.routes[state.index].key].options.headerShown
-    const shouldHide = headerShown != null ? !headerShown : false
-
-    return (
-      <Header shouldHide={shouldHide}
-        state={state}
-        navigation={navigation}
-        descriptors={descriptors} />
-    )
-  }
-
-  private renderContent = () => {
-    let { lazy, state, descriptors, unmountInactiveScreens } = this.props;
-
-    const { loaded } = this.state;
-
+  const renderContent = () => {
     return (
       <ScreenContainer style={styles.content}>
         {state.routes.map((route, index) => {
-          if (unmountInactiveScreens && index !== state.index) {
+          const descriptor = descriptors[route.key];
+          const { unmountOnBlur } = descriptor.options;
+          const isFocused = state.index === index;
+
+          if (unmountOnBlur && !isFocused) {
             return null;
           }
 
-          if (lazy && !loaded.includes(index)) {
+          if (lazy && !loaded.includes(index) && !isFocused) {
             // Don't render a screen if we've never navigated to it
             return null;
           }
-
-          const isFocused = state.index === index;
-          const descriptor = descriptors[route.key];
 
           return (
             <ResourceSavingScene
@@ -209,75 +216,52 @@ export default class DrawerView extends React.PureComponent<Props, State> {
     );
   };
 
-  private setDrawerGestureRef = (ref: PanGestureHandler | null) => {
-    // @ts-ignore
-    this.drawerGestureRef.current = ref;
-  };
+  const activeKey = state.routes[state.index].key;
+  const { gestureEnabled } = descriptors[activeKey].options;
 
-  render() {
-    const {
-      state,
-      descriptors,
-      drawerType,
-      drawerPosition,
-      overlayColor,
-      sceneContainerStyle,
-      drawerStyle,
-      edgeWidth,
-      minSwipeDistance,
-      hideStatusBar,
-      statusBarAnimation,
-      gestureHandlerProps,
-    } = this.props;
-
-    const { drawerWidth } = this.state;
-
-    const activeKey = state.routes[state.index].key;
-    const { gestureEnabled } = descriptors[activeKey].options;
-
-    return (
+  return (
+    <GestureHandlerWrapper style={styles.content}>
       <SafeAreaProviderCompat>
-        <DrawerGestureContext.Provider value={this.drawerGestureRef}>
+        <DrawerGestureContext.Provider value={drawerGestureRef}>
           <Drawer
-            open={state.isDrawerOpen}
-            gestureEnabled={gestureEnabled !== false}
-            onOpen={this.handleDrawerOpen}
-            onClose={this.handleDrawerClose}
-            onGestureRef={this.setDrawerGestureRef}
+            open={isDrawerOpen}
+            gestureEnabled={gestureEnabled}
+            onOpen={handleDrawerOpen}
+            onClose={handleDrawerClose}
+            onGestureRef={ref => {
+              // @ts-ignore
+              drawerGestureRef.current = ref;
+            }}
             gestureHandlerProps={gestureHandlerProps}
             drawerType={drawerType}
             drawerPosition={drawerPosition}
-            sceneContainerStyle={sceneContainerStyle}
-            drawerStyle={[{ width: drawerWidth }, drawerStyle]}
+            sceneContainerStyle={[
+              { backgroundColor: colors.background },
+              sceneContainerStyle,
+            ]}
+            drawerStyle={[
+              { width: drawerWidth, backgroundColor: colors.card },
+              drawerStyle,
+            ]}
             overlayStyle={{ backgroundColor: overlayColor }}
             swipeEdgeWidth={edgeWidth}
             swipeDistanceThreshold={minSwipeDistance}
             hideStatusBar={hideStatusBar}
             statusBarAnimation={statusBarAnimation}
-            renderDrawerContent={this.renderNavigationView}
-            renderSceneContent={this.renderContent}
-            renderHeader={this.renderHeader}
+            renderDrawerContent={renderNavigationView}
+            renderSceneContent={renderContent}
+            renderHeader={renderHeader}
+            keyboardDismissMode={keyboardDismissMode}
+            drawerPostion={drawerPosition}
           />
         </DrawerGestureContext.Provider>
       </SafeAreaProviderCompat>
-    );
-  }
+    </GestureHandlerWrapper>
+  );
 }
 
 const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  headerTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-  },
-  headerBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  }
 });

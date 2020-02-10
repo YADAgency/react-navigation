@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
+  Animated,
   View,
-  I18nManager,
   StyleSheet,
   ViewProps,
   StyleProp,
@@ -9,35 +9,36 @@ import {
   Platform,
   InteractionManager,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
 import {
   PanGestureHandler,
   State as GestureState,
+  PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import { EdgeInsets } from 'react-native-safe-area-context';
-import PointerEventsView from './PointerEventsView';
+import Color from 'color';
+import StackGestureRefContext from '../../utils/GestureHandlerRefContext';
+import CardAnimationContext from '../../utils/CardAnimationContext';
+import getDistanceForDirection from '../../utils/getDistanceForDirection';
+import getInvertedMultiplier from '../../utils/getInvertedMultiplier';
 import memoize from '../../utils/memoize';
-import StackGestureContext from '../../utils/StackGestureContext';
 import {
   TransitionSpec,
   StackCardStyleInterpolator,
+  GestureDirection,
   Layout,
-  SpringConfig,
-  TimingConfig,
 } from '../../types';
 
 type Props = ViewProps & {
   index: number;
-  active: boolean;
-  closing?: boolean;
-  transparent?: boolean;
-  next?: Animated.Node<number>;
-  current: Animated.Value<number>;
+  closing: boolean;
+  next?: Animated.AnimatedInterpolation;
+  current: Animated.AnimatedInterpolation;
+  gesture: Animated.Value;
   layout: Layout;
   insets: EdgeInsets;
-  gestureDirection: 'horizontal' | 'vertical';
-  onOpen: (isFinished: boolean) => void;
-  onClose: (isFinished: boolean) => void;
+  gestureDirection: GestureDirection;
+  onOpen: () => void;
+  onClose: () => void;
   onTransitionStart?: (props: { closing: boolean }) => void;
   onGestureBegin?: () => void;
   onGestureCanceled?: () => void;
@@ -60,36 +61,10 @@ type Props = ViewProps & {
   contentStyle?: StyleProp<ViewStyle>;
 };
 
-type AnimatedSpringConfig = {
-  damping: Animated.Value<number>;
-  mass: Animated.Value<number>;
-  stiffness: Animated.Value<number>;
-  restSpeedThreshold: Animated.Value<number>;
-  restDisplacementThreshold: Animated.Value<number>;
-  overshootClamping: Animated.Value<boolean>;
-};
-
-export type AnimatedTimingConfig = {
-  duration: Animated.Value<number>;
-  easing: Animated.EasingFunction;
-};
-
-type Binary = 0 | 1;
+const GESTURE_VELOCITY_IMPACT = 0.3;
 
 const TRUE = 1;
-const TRUE_NODE = new Animated.Value(TRUE);
 const FALSE = 0;
-const FALSE_NODE = new Animated.Value(FALSE);
-const NOOP_NODE = FALSE_NODE;
-const UNSET = -1;
-const UNSET_NODE = new Animated.Value(UNSET);
-
-const MINUS_ONE_NODE = UNSET_NODE;
-
-const DIRECTION_VERTICAL = -1;
-const DIRECTION_HORIZONTAL = 1;
-
-const GESTURE_VELOCITY_IMPACT = 0.3;
 
 /**
  * The distance of touch start from the edge of the screen where the gesture will be recognized
@@ -97,134 +72,7 @@ const GESTURE_VELOCITY_IMPACT = 0.3;
 const GESTURE_RESPONSE_DISTANCE_HORIZONTAL = 50;
 const GESTURE_RESPONSE_DISTANCE_VERTICAL = 135;
 
-const {
-  abs,
-  add,
-  block,
-  call,
-  cond,
-  divide,
-  eq,
-  greaterThan,
-  lessThan,
-  max,
-  min,
-  multiply,
-  neq,
-  onChange,
-  set,
-  spring,
-  sub,
-  timing,
-  startClock,
-  stopClock,
-  clockRunning,
-  Clock,
-  Value,
-} = Animated;
-
-// We need to be prepared for both version of reanimated. With and w/out proc
-let memoizedSpring = spring;
-
-if (Animated.proc) {
-  const springHelper = Animated.proc(
-    (
-      finished: Animated.Value<number>,
-      velocity: Animated.Value<number>,
-      position: Animated.Value<number>,
-      time: Animated.Value<number>,
-      prevPosition: Animated.Value<number>,
-      toValue: Animated.Adaptable<number>,
-      damping: Animated.Adaptable<number>,
-      mass: Animated.Adaptable<number>,
-      stiffness: Animated.Adaptable<number>,
-      overshootClamping: Animated.Adaptable<number>,
-      restSpeedThreshold: Animated.Adaptable<number>,
-      restDisplacementThreshold: Animated.Adaptable<number>,
-      clock: Animated.Clock
-    ) =>
-      spring(
-        clock,
-        {
-          finished,
-          velocity,
-          position,
-          time,
-          // @ts-ignore
-          prevPosition,
-        },
-        {
-          toValue,
-          damping,
-          mass,
-          stiffness,
-          overshootClamping,
-          restDisplacementThreshold,
-          restSpeedThreshold,
-        }
-      )
-  );
-
-  // @ts-ignore
-  memoizedSpring = function(
-    clock: Animated.Clock,
-    state: {
-      finished: Animated.Value<number>;
-      velocity: Animated.Value<number>;
-      position: Animated.Value<number>;
-      time: Animated.Value<number>;
-    },
-    config: {
-      toValue: Animated.Adaptable<number>;
-      damping: Animated.Adaptable<number>;
-      mass: Animated.Adaptable<number>;
-      stiffness: Animated.Adaptable<number>;
-      overshootClamping: Animated.Adaptable<number>;
-      restSpeedThreshold: Animated.Adaptable<number>;
-      restDisplacementThreshold: Animated.Adaptable<number>;
-    }
-  ) {
-    return springHelper(
-      state.finished,
-      state.velocity,
-      state.position,
-      state.time,
-      new Value(0),
-      config.toValue,
-      config.damping,
-      config.mass,
-      config.stiffness,
-      config.overshootClamping,
-      config.restSpeedThreshold,
-      config.restDisplacementThreshold,
-      clock
-    );
-  };
-}
-
-function transformSpringConfigToAnimatedValues(
-  config: SpringConfig
-): AnimatedSpringConfig {
-  return {
-    damping: new Animated.Value(config.damping),
-    stiffness: new Animated.Value(config.stiffness),
-    mass: new Animated.Value(config.mass),
-    restDisplacementThreshold: new Animated.Value(
-      config.restDisplacementThreshold
-    ),
-    restSpeedThreshold: new Animated.Value(config.restSpeedThreshold),
-    overshootClamping: new Animated.Value(config.overshootClamping),
-  };
-}
-
-function transformTimingConfigToAnimatedValues(
-  config: TimingConfig
-): AnimatedTimingConfig {
-  return {
-    duration: new Animated.Value(config.duration),
-    easing: config.easing,
-  };
-}
+const useNativeDriver = Platform.OS !== 'web';
 
 export default class Card extends React.Component<Props> {
   static defaultProps = {
@@ -234,13 +82,12 @@ export default class Card extends React.Component<Props> {
     gestureVelocityImpact: GESTURE_VELOCITY_IMPACT,
   };
 
+  componentDidMount() {
+    this.animate({ closing: this.props.closing });
+  }
+
   componentDidUpdate(prevProps: Props) {
-    const {
-      layout,
-      gestureDirection,
-      gestureVelocityImpact,
-      closing,
-    } = this.props;
+    const { layout, gestureDirection, closing } = this.props;
     const { width, height } = layout;
 
     if (width !== prevProps.layout.width) {
@@ -251,112 +98,116 @@ export default class Card extends React.Component<Props> {
       this.layout.height.setValue(height);
     }
 
-    if (gestureVelocityImpact !== prevProps.gestureVelocityImpact) {
-      this.gestureVelocityImpact.setValue(gestureVelocityImpact);
-    }
-
     if (gestureDirection !== prevProps.gestureDirection) {
-      this.direction.setValue(
-        gestureDirection === 'vertical'
-          ? DIRECTION_VERTICAL
-          : DIRECTION_HORIZONTAL
-      );
+      this.inverted.setValue(getInvertedMultiplier(gestureDirection));
     }
 
-    if (closing !== prevProps.closing) {
-      // If the style updates during render, setting the value here doesn't work
-      // We need to defer it a bit so the animation starts properly
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() =>
-          this.isClosing.setValue(closing ? TRUE : FALSE)
-        )
-      );
+    if (
+      this.getAnimateToValue(this.props) !== this.getAnimateToValue(prevProps)
+    ) {
+      // We need to trigger the animation when route was closed
+      // Thr route might have been closed by a `POP` action or by a gesture
+      // When route was closed due to a gesture, the animation would've happened already
+      // It's still important to trigger the animation so that `onClose` is called
+      // If `onClose` is not called, cleanup step won't be performed for gestures
+      this.animate({ closing });
     }
   }
 
-  componentWillUnmount(): void {
+  componentWillUnmount() {
     this.handleEndInteraction();
-
-    // It might sometimes happen than animation will be unmounted
-    // during running. However, we need to invoke listener onClose
-    // manually in this case
-    if (this.isRunningAnimation || this.noAnimationStartedSoFar) {
-      this.props.onClose(false);
-    }
   }
 
-  private isVisible = new Value<Binary>(TRUE);
-  private nextIsVisible = new Value<Binary | -1>(UNSET);
+  private isClosing = new Animated.Value(FALSE);
 
-  private isClosing = new Value<Binary>(FALSE);
-  private noAnimationStartedSoFar = true;
-  private isRunningAnimation = false;
-
-  private clock = new Clock();
-
-  private direction = new Value(
-    this.props.gestureDirection === 'vertical'
-      ? DIRECTION_VERTICAL
-      : DIRECTION_HORIZONTAL
+  private inverted = new Animated.Value(
+    getInvertedMultiplier(this.props.gestureDirection)
   );
 
   private layout = {
-    width: new Value(this.props.layout.width),
-    height: new Value(this.props.layout.height),
+    width: new Animated.Value(this.props.layout.width),
+    height: new Animated.Value(this.props.layout.height),
   };
 
-  private gestureVelocityImpact = new Value<number>(
-    this.props.gestureVelocityImpact
-  );
-
-  private openingSpecConfig =
-    this.props.transitionSpec.open.animation === 'timing'
-      ? transformTimingConfigToAnimatedValues(
-          this.props.transitionSpec.open.config
-        )
-      : transformSpringConfigToAnimatedValues(
-          this.props.transitionSpec.open.config
-        );
-
-  private closingSpecConfig =
-    this.props.transitionSpec.close.animation === 'timing'
-      ? transformTimingConfigToAnimatedValues(
-          this.props.transitionSpec.close.config
-        )
-      : transformSpringConfigToAnimatedValues(
-          this.props.transitionSpec.close.config
-        );
-
-  private distance = cond(
-    eq(this.direction, DIRECTION_VERTICAL),
-    this.layout.height,
-    this.layout.width
-  );
-
-  private gestureUntraversed = new Value(0);
-  private gesture = new Value(0);
-  private offset = new Value(0);
-  private velocityUntraversed = new Value(0);
-  private velocity = new Value(0);
-
-  private gestureState = new Value(0);
-
-  private isSwiping = new Value(FALSE);
-  private isSwipeCancelled = new Value(FALSE);
-  private isSwipeGesture = new Value(FALSE);
-
-  private toValue = new Value(0);
-  private frameTime = new Value(0);
-
-  private transitionVelocity = new Value(0);
-
-  private transitionState = {
-    position: this.props.current,
-    time: new Value(0),
-    finished: new Value(FALSE),
-  };
+  private isSwiping = new Animated.Value(FALSE);
 
   private interactionHandle: number | undefined;
+
+  private pendingGestureCallback: number | undefined;
+
+  private animate = ({
+    closing,
+    velocity,
+  }: {
+    closing: boolean;
+    velocity?: number;
+  }) => {
+    const {
+      gesture,
+      transitionSpec,
+      onOpen,
+      onClose,
+      onTransitionStart,
+    } = this.props;
+
+    const toValue = this.getAnimateToValue({
+      ...this.props,
+      closing,
+    });
+
+    const spec = closing ? transitionSpec.close : transitionSpec.open;
+
+    const animation =
+      spec.animation === 'spring' ? Animated.spring : Animated.timing;
+
+    this.setPointerEventsEnabled(!closing);
+    this.handleStartInteraction();
+
+    clearTimeout(this.pendingGestureCallback);
+
+    onTransitionStart?.({ closing });
+    animation(gesture, {
+      ...spec.config,
+      velocity,
+      toValue,
+      useNativeDriver,
+      isInteraction: false,
+    }).start(({ finished }) => {
+      this.handleEndInteraction();
+
+      clearTimeout(this.pendingGestureCallback);
+
+      if (finished) {
+        if (closing) {
+          onClose();
+        } else {
+          onOpen();
+        }
+      }
+    });
+  };
+
+  private getAnimateToValue = ({
+    closing,
+    layout,
+    gestureDirection,
+  }: {
+    closing?: boolean;
+    layout: Layout;
+    gestureDirection: GestureDirection;
+  }) => {
+    if (!closing) {
+      return 0;
+    }
+
+    return getDistanceForDirection(layout, gestureDirection);
+  };
+
+  private setPointerEventsEnabled = (enabled: boolean) => {
+    const pointerEvents = enabled ? 'box-none' : 'none';
+
+    this.contentRef.current?.setNativeProps({ pointerEvents });
+  };
 
   private handleStartInteraction = () => {
     if (this.interactionHandle === undefined) {
@@ -371,306 +222,80 @@ export default class Card extends React.Component<Props> {
     }
   };
 
-  private handleTransitionEnd = () => {
-    this.handleEndInteraction();
+  private handleGestureStateChange = ({
+    nativeEvent,
+  }: PanGestureHandlerGestureEvent) => {
+    const {
+      layout,
+      onClose,
+      onGestureBegin,
+      onGestureCanceled,
+      onGestureEnd,
+      gestureDirection,
+      gestureVelocityImpact,
+    } = this.props;
 
-    this.isRunningAnimation = false;
-    this.interpolatedStyle = this.getInterpolatedStyle(
-      this.props.styleInterpolator,
-      this.props.index,
-      this.props.current,
-      this.props.next,
-      this.props.layout,
-      this.props.insets.top,
-      this.props.insets.right,
-      this.props.insets.bottom,
-      this.props.insets.left
-    );
-  };
+    switch (nativeEvent.state) {
+      case GestureState.BEGAN:
+        this.isSwiping.setValue(TRUE);
+        this.handleStartInteraction();
+        onGestureBegin?.();
+        break;
+      case GestureState.CANCELLED:
+        this.isSwiping.setValue(FALSE);
+        this.handleEndInteraction();
+        onGestureCanceled?.();
+        break;
+      case GestureState.END: {
+        this.isSwiping.setValue(FALSE);
 
-  private runTransition = (isVisible: Binary | Animated.Node<number>) => {
-    const { open: openingSpec, close: closingSpec } = this.props.transitionSpec;
+        let distance;
+        let translation;
+        let velocity;
 
-    return cond(eq(this.props.current, isVisible), NOOP_NODE, [
-      cond(clockRunning(this.clock), NOOP_NODE, [
-        // Animation wasn't running before
-        // Set the initial values and start the clock
-        set(this.toValue, isVisible),
-        // The velocity value is ideal for translating the whole screen
-        // But since we have 0-1 scale, we need to adjust the velocity
-        set(
-          this.transitionVelocity,
-          multiply(
-            cond(
-              this.distance,
-              divide(this.velocity, this.distance),
-              FALSE_NODE
-            ),
-            -1
-          )
-        ),
-        set(this.frameTime, FALSE_NODE),
-        set(this.transitionState.time, FALSE_NODE),
-        set(this.transitionState.finished, FALSE_NODE),
-        set(this.isVisible, isVisible),
-        startClock(this.clock),
-        call([this.isVisible], ([value]: ReadonlyArray<Binary>) => {
-          this.handleStartInteraction();
-
-          const { onTransitionStart } = this.props;
-          this.noAnimationStartedSoFar = false;
-          this.isRunningAnimation = true;
-          onTransitionStart && onTransitionStart({ closing: !value });
-        }),
-      ]),
-      cond(
-        eq(isVisible, TRUE_NODE),
-        openingSpec.animation === 'spring'
-          ? memoizedSpring(
-              this.clock,
-              { ...this.transitionState, velocity: this.transitionVelocity },
-              // @ts-ignore
-              {
-                ...(this.openingSpecConfig as AnimatedSpringConfig),
-                toValue: this.toValue,
-              }
-            )
-          : timing(
-              this.clock,
-              { ...this.transitionState, frameTime: this.frameTime },
-              {
-                ...(this.openingSpecConfig as AnimatedTimingConfig),
-                toValue: this.toValue,
-              }
-            ),
-        closingSpec.animation === 'spring'
-          ? memoizedSpring(
-              this.clock,
-              { ...this.transitionState, velocity: this.transitionVelocity },
-              // @ts-ignore
-              {
-                ...(this.closingSpecConfig as AnimatedSpringConfig),
-                toValue: this.toValue,
-              }
-            )
-          : timing(
-              this.clock,
-              { ...this.transitionState, frameTime: this.frameTime },
-              {
-                ...(this.closingSpecConfig as AnimatedTimingConfig),
-                toValue: this.toValue,
-              }
-            )
-      ),
-      cond(this.transitionState.finished, [
-        // Reset values
-        set(this.isSwipeGesture, FALSE_NODE),
-        set(this.gesture, FALSE_NODE),
-        set(this.velocity, FALSE_NODE),
-        // When the animation finishes, stop the clock
-        stopClock(this.clock),
-        call([this.isVisible], ([value]: ReadonlyArray<Binary>) => {
-          const isOpen = Boolean(value);
-          const { onOpen, onClose } = this.props;
-
-          this.handleTransitionEnd();
-
-          if (isOpen) {
-            onOpen(true);
-          } else {
-            onClose(true);
-          }
-        }),
-      ]),
-    ]);
-  };
-
-  private extrapolatedPosition = add(
-    this.gesture,
-    multiply(this.velocity, this.gestureVelocityImpact)
-  );
-
-  private exec = [
-    set(
-      this.gesture,
-      cond(
-        eq(this.direction, DIRECTION_HORIZONTAL),
-        multiply(
-          this.gestureUntraversed,
-          I18nManager.isRTL ? MINUS_ONE_NODE : TRUE_NODE
-        ),
-        this.gestureUntraversed
-      )
-    ),
-    set(
-      this.velocity,
-      multiply(
-        this.velocityUntraversed,
-        I18nManager.isRTL ? MINUS_ONE_NODE : TRUE_NODE
-      )
-    ),
-    onChange(
-      this.isClosing,
-      cond(this.isClosing, set(this.nextIsVisible, FALSE_NODE))
-    ),
-    onChange(
-      this.nextIsVisible,
-      cond(neq(this.nextIsVisible, UNSET_NODE), [
-        // Stop any running animations
-        cond(clockRunning(this.clock), [
-          call([], this.handleTransitionEnd),
-          stopClock(this.clock),
-        ]),
-        set(this.gesture, FALSE_NODE),
-        // Update the index to trigger the transition
-        set(this.isVisible, this.nextIsVisible),
-        set(this.nextIsVisible, UNSET_NODE),
-      ])
-    ),
-  ];
-
-  private execNoGesture = block([
-    ...this.exec,
-    this.runTransition(this.isVisible),
-  ]);
-
-  private execWithGesture = block([
-    ...this.exec,
-    onChange(
-      this.isSwiping,
-      call(
-        [this.isSwiping, this.isSwipeCancelled],
-        ([isSwiping, isSwipeCancelled]: readonly Binary[]) => {
-          const {
-            onGestureBegin,
-            onGestureEnd,
-            onGestureCanceled,
-          } = this.props;
-
-          if (isSwiping === TRUE) {
-            this.handleStartInteraction();
-
-            onGestureBegin && onGestureBegin();
-          } else {
-            this.handleEndInteraction();
-
-            if (isSwipeCancelled === TRUE) {
-              onGestureCanceled && onGestureCanceled();
-            } else {
-              onGestureEnd && onGestureEnd();
-            }
-          }
+        if (
+          gestureDirection === 'vertical' ||
+          gestureDirection === 'vertical-inverted'
+        ) {
+          distance = layout.height;
+          translation = nativeEvent.translationY;
+          velocity = nativeEvent.velocityY;
+        } else {
+          distance = layout.width;
+          translation = nativeEvent.translationX;
+          velocity = nativeEvent.velocityX;
         }
-      )
-    ),
-    cond(
-      eq(this.gestureState, GestureState.ACTIVE),
-      [
-        cond(this.isSwiping, NOOP_NODE, [
-          // We weren't dragging before, set it to true
-          set(this.isSwipeCancelled, FALSE_NODE),
-          set(this.isSwiping, TRUE_NODE),
-          set(this.isSwipeGesture, TRUE_NODE),
-          // Also update the drag offset to the last position
-          set(this.offset, this.props.current),
-        ]),
-        // Update position with next offset + gesture distance
-        set(
-          this.props.current,
-          min(
-            max(
-              sub(
-                this.offset,
-                cond(
-                  this.distance,
-                  divide(
-                    cond(
-                      eq(this.direction, DIRECTION_HORIZONTAL),
-                      multiply(
-                        this.gestureUntraversed,
-                        I18nManager.isRTL ? MINUS_ONE_NODE : TRUE_NODE
-                      ),
-                      this.gestureUntraversed
-                    ),
-                    this.distance
-                  ),
-                  TRUE_NODE
-                )
-              ),
-              FALSE_NODE
-            ),
-            TRUE_NODE
-          )
-        ),
-        // Stop animations while we're dragging
-        cond(
-          clockRunning(this.clock),
-          call([], () => {
-            this.isRunningAnimation = false;
-          })
-        ),
-        stopClock(this.clock),
-      ],
-      [
-        set(
-          this.isSwipeCancelled,
-          eq(this.gestureState, GestureState.CANCELLED)
-        ),
-        set(this.isSwiping, FALSE_NODE),
-        this.runTransition(
-          cond(
-            greaterThan(
-              abs(this.extrapolatedPosition),
-              divide(this.distance, 2)
-            ),
-            cond(
-              lessThan(
-                cond(
-                  eq(this.velocity, FALSE_NODE),
-                  this.gesture,
-                  this.velocity
-                ),
-                FALSE_NODE
-              ),
-              TRUE_NODE,
-              FALSE_NODE
-            ),
-            this.isVisible
-          )
-        ),
-      ]
-    ),
-  ]);
 
-  private handleGestureEventHorizontal = Animated.event([
-    {
-      nativeEvent: {
-        translationX: this.gestureUntraversed,
-        velocityX: this.velocityUntraversed,
-        state: this.gestureState,
-      },
-    },
-  ]);
+        const closing =
+          Math.abs(translation + velocity * gestureVelocityImpact) >
+          distance / 2
+            ? velocity !== 0 || translation !== 0
+            : false;
 
-  private handleGestureEventVertical = Animated.event([
-    {
-      nativeEvent: {
-        translationY: this.gestureUntraversed,
-        velocityY: this.velocityUntraversed,
-        state: this.gestureState,
-      },
-    },
-  ]);
+        this.animate({ closing, velocity });
 
-  // We need to ensure that this style doesn't change unless absolutely needs to
-  // Changing it too often will result in huge frame drops due to detaching and attaching
-  // Changing it during an animations can result in unexpected results
+        if (closing) {
+          // We call onClose with a delay to make sure that the animation has already started
+          // This will make sure that the state update caused by this doesn't affect start of animation
+          this.pendingGestureCallback = (setTimeout(
+            onClose,
+            32
+          ) as any) as number;
+        }
+
+        onGestureEnd?.();
+        break;
+      }
+    }
+  };
+
+  // Memoize this to avoid extra work on re-render
   private getInterpolatedStyle = memoize(
     (
       styleInterpolator: StackCardStyleInterpolator,
       index: number,
-      current: Animated.Node<number>,
-      next: Animated.Node<number> | undefined,
+      current: Animated.AnimatedInterpolation,
+      next: Animated.AnimatedInterpolation | undefined,
       layout: Layout,
       insetTop: number,
       insetRight: number,
@@ -682,6 +307,8 @@ export default class Card extends React.Component<Props> {
         current: { progress: current },
         next: next && { progress: next },
         closing: this.isClosing,
+        swiping: this.isSwiping,
+        inverted: this.inverted,
         layouts: {
           screen: layout,
         },
@@ -694,33 +321,46 @@ export default class Card extends React.Component<Props> {
       })
   );
 
-  // Keep track of the style in a property to avoid changing the animated node when deps change
-  // The style shouldn't change in the middle of the animation and should refer to what was there at the start of it
-  // Which will be the last value when just before the render which started the animation
-  // We need to make sure to update this when the running animation ends
-  private interpolatedStyle = this.getInterpolatedStyle(
-    this.props.styleInterpolator,
-    this.props.index,
-    this.props.current,
-    this.props.next,
-    this.props.layout,
-    this.props.insets.top,
-    this.props.insets.right,
-    this.props.insets.bottom,
-    this.props.insets.left
+  // Keep track of the animation context when deps changes.
+  private getCardAnimationContext = memoize(
+    (
+      index: number,
+      current: Animated.AnimatedInterpolation,
+      next: Animated.AnimatedInterpolation | undefined,
+      layout: Layout,
+      insetTop: number,
+      insetRight: number,
+      insetBottom: number,
+      insetLeft: number
+    ) => ({
+      index,
+      current: { progress: current },
+      next: next && { progress: next },
+      closing: this.isClosing,
+      swiping: this.isSwiping,
+      inverted: this.inverted,
+      layouts: {
+        screen: layout,
+      },
+      insets: {
+        top: insetTop,
+        right: insetRight,
+        bottom: insetBottom,
+        left: insetLeft,
+      },
+    })
   );
 
   private gestureActivationCriteria() {
     const { layout, gestureDirection, gestureResponseDistance } = this.props;
 
     const distance =
-      gestureDirection === 'vertical'
-        ? gestureResponseDistance &&
-          gestureResponseDistance.vertical !== undefined
+      gestureDirection === 'vertical' ||
+      gestureDirection === 'vertical-inverted'
+        ? gestureResponseDistance?.vertical !== undefined
           ? gestureResponseDistance.vertical
           : GESTURE_RESPONSE_DISTANCE_VERTICAL
-        : gestureResponseDistance &&
-          gestureResponseDistance.horizontal !== undefined
+        : gestureResponseDistance?.horizontal !== undefined
         ? gestureResponseDistance.horizontal
         : GESTURE_RESPONSE_DISTANCE_HORIZONTAL;
 
@@ -730,34 +370,42 @@ export default class Card extends React.Component<Props> {
         minOffsetY: 5,
         hitSlop: { bottom: -layout.height + distance },
       };
+    } else if (gestureDirection === 'vertical-inverted') {
+      return {
+        maxDeltaX: 15,
+        minOffsetY: -5,
+        hitSlop: { top: -layout.height + distance },
+      };
     } else {
       const hitSlop = -layout.width + distance;
+      const invertedMultiplier = getInvertedMultiplier(gestureDirection);
 
-      if (I18nManager.isRTL) {
-        return {
-          minOffsetX: -5,
-          maxDeltaY: 20,
-          hitSlop: { left: hitSlop },
-        };
-      } else {
+      if (invertedMultiplier === 1) {
         return {
           minOffsetX: 5,
           maxDeltaY: 20,
           hitSlop: { right: hitSlop },
         };
+      } else {
+        return {
+          minOffsetX: -5,
+          maxDeltaY: 20,
+          hitSlop: { left: hitSlop },
+        };
       }
     }
   }
 
-  private gestureRef: React.Ref<PanGestureHandler> = React.createRef();
+  private gestureRef = React.createRef<PanGestureHandler>();
+
+  private contentRef = React.createRef<View>();
 
   render() {
     const {
-      active,
-      transparent,
       styleInterpolator,
       index,
       current,
+      gesture,
       next,
       layout,
       insets,
@@ -771,86 +419,106 @@ export default class Card extends React.Component<Props> {
       ...rest
     } = this.props;
 
-    if (!this.isRunningAnimation) {
-      this.interpolatedStyle = this.getInterpolatedStyle(
-        styleInterpolator,
-        index,
-        current,
-        next,
-        layout,
-        insets.top,
-        insets.right,
-        insets.bottom,
-        insets.left
-      );
-    }
+    const interpolatedStyle = this.getInterpolatedStyle(
+      styleInterpolator,
+      index,
+      current,
+      next,
+      layout,
+      insets.top,
+      insets.right,
+      insets.bottom,
+      insets.left
+    );
+
+    const animationContext = this.getCardAnimationContext(
+      index,
+      current,
+      next,
+      layout,
+      insets.top,
+      insets.right,
+      insets.bottom,
+      insets.left
+    );
 
     const {
       containerStyle,
       cardStyle,
       overlayStyle,
       shadowStyle,
-    } = this.interpolatedStyle;
+    } = interpolatedStyle;
 
     const handleGestureEvent = gestureEnabled
-      ? gestureDirection === 'vertical'
-        ? this.handleGestureEventVertical
-        : this.handleGestureEventHorizontal
+      ? Animated.event(
+          [
+            {
+              nativeEvent:
+                gestureDirection === 'vertical' ||
+                gestureDirection === 'vertical-inverted'
+                  ? { translationY: gesture }
+                  : { translationX: gesture },
+            },
+          ],
+          { useNativeDriver }
+        )
       : undefined;
 
+    const { backgroundColor } = StyleSheet.flatten(contentStyle || {});
+    const isTransparent = backgroundColor
+      ? Color(backgroundColor).alpha() === 0
+      : false;
+
     return (
-      <StackGestureContext.Provider value={this.gestureRef}>
-        <View pointerEvents="box-none" {...rest}>
-          <Animated.Code
-            key={gestureEnabled ? 'gesture-code' : 'no-gesture-code'}
-            exec={gestureEnabled ? this.execWithGesture : this.execNoGesture}
-          />
-          {overlayEnabled && overlayStyle ? (
-            <Animated.View
-              pointerEvents="none"
-              style={[styles.overlay, overlayStyle]}
-            />
-          ) : null}
+      <View pointerEvents="box-none" {...rest}>
+        {overlayEnabled && overlayStyle ? (
           <Animated.View
-            style={[styles.container, containerStyle, customContainerStyle]}
-            pointerEvents="box-none"
+            pointerEvents="none"
+            style={[styles.overlay, overlayStyle]}
+          />
+        ) : null}
+        <Animated.View
+          style={[styles.container, containerStyle, customContainerStyle]}
+          pointerEvents="box-none"
+        >
+          <PanGestureHandler
+            ref={this.gestureRef}
+            enabled={layout.width !== 0 && gestureEnabled}
+            onGestureEvent={handleGestureEvent}
+            onHandlerStateChange={this.handleGestureStateChange}
+            {...this.gestureActivationCriteria()}
           >
-            <PanGestureHandler
-              ref={this.gestureRef}
-              enabled={layout.width !== 0 && gestureEnabled}
-              onGestureEvent={handleGestureEvent}
-              onHandlerStateChange={handleGestureEvent}
-              {...this.gestureActivationCriteria()}
-            >
-              <Animated.View style={[styles.container, cardStyle]}>
-                {shadowEnabled && shadowStyle && !transparent ? (
-                  <Animated.View
-                    style={[
-                      styles.shadow,
-                      gestureDirection === 'horizontal'
-                        ? styles.shadowHorizontal
-                        : styles.shadowVertical,
-                      shadowStyle,
-                    ]}
-                    pointerEvents="none"
-                  />
-                ) : null}
-                <PointerEventsView
-                  active={active}
-                  progress={this.props.current}
+            <Animated.View style={[styles.container, cardStyle]}>
+              {shadowEnabled && shadowStyle && !isTransparent ? (
+                <Animated.View
                   style={[
-                    styles.content,
-                    transparent ? styles.transparent : styles.opaque,
-                    contentStyle,
+                    styles.shadow,
+                    gestureDirection === 'horizontal'
+                      ? [styles.shadowHorizontal, styles.shadowLeft]
+                      : gestureDirection === 'horizontal-inverted'
+                      ? [styles.shadowHorizontal, styles.shadowRight]
+                      : gestureDirection === 'vertical'
+                      ? [styles.shadowVertical, styles.shadowTop]
+                      : [styles.shadowVertical, styles.shadowBottom],
+                    shadowStyle,
                   ]}
-                >
-                  {children}
-                </PointerEventsView>
-              </Animated.View>
-            </PanGestureHandler>
-          </Animated.View>
-        </View>
-      </StackGestureContext.Provider>
+                  pointerEvents="none"
+                />
+              ) : null}
+              <View
+                ref={this.contentRef}
+                style={[styles.content, contentStyle]}
+              >
+                <StackGestureRefContext.Provider value={this.gestureRef}>
+                  <CardAnimationContext.Provider value={animationContext}>
+                    {children}
+                  </CardAnimationContext.Provider>
+                </StackGestureRefContext.Provider>
+              </View>
+            </Animated.View>
+          </PanGestureHandler>
+        </Animated.View>
+      </View>
     );
   }
 }
@@ -876,22 +544,26 @@ const styles = StyleSheet.create({
   },
   shadowHorizontal: {
     top: 0,
-    left: 0,
     bottom: 0,
     width: 3,
     shadowOffset: { width: -1, height: 1 },
   },
+  shadowLeft: {
+    left: 0,
+  },
+  shadowRight: {
+    right: 0,
+  },
   shadowVertical: {
-    top: 0,
     left: 0,
     right: 0,
     height: 3,
     shadowOffset: { width: 1, height: -1 },
   },
-  transparent: {
-    backgroundColor: 'transparent',
+  shadowTop: {
+    top: 0,
   },
-  opaque: {
-    backgroundColor: '#eee',
+  shadowBottom: {
+    bottom: 0,
   },
 });

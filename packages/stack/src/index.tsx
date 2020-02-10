@@ -9,7 +9,9 @@ import * as TransitionPresets from './TransitionConfigs/TransitionPresets';
 export { default as createStackNavigator } from './navigators/createStackNavigator';
 
 export const Assets = [
+  // eslint-disable-next-line import/no-commonjs
   require('./views/assets/back-icon.png'),
+  // eslint-disable-next-line import/no-commonjs
   require('./views/assets/back-icon-mask.png'),
 ];
 
@@ -20,6 +22,7 @@ export { default as StackView } from './views/Stack/StackView';
 export { default as Header } from './views/Header/Header';
 export { default as HeaderTitle } from './views/Header/HeaderTitle';
 export { default as HeaderBackButton } from './views/Header/HeaderBackButton';
+export { default as HeaderBackground } from './views/Header/HeaderBackground';
 
 /**
  * Transition presets
@@ -34,7 +37,13 @@ export {
 /**
  * Utilities
  */
-export { default as StackGestureContext } from './utils/StackGestureContext';
+export { default as CardAnimationContext } from './utils/CardAnimationContext';
+export { default as HeaderHeightContext } from './utils/HeaderHeightContext';
+export { default as GestureHandlerRefContext } from './utils/GestureHandlerRefContext';
+
+export { default as useCardAnimation } from './utils/useCardAnimation';
+export { default as useHeaderHeight } from './utils/useHeaderHeight';
+export { default as useGestureHandlerRef } from './utils/useGestureHandlerRef';
 
 /**
  * Types

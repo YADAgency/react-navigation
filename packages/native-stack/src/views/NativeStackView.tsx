@@ -3,25 +3,19 @@ import { View, StyleSheet } from 'react-native';
 import { StackNavigationState, StackActions } from '@react-navigation/routers';
 
 import {
-  // @ts-ignore
   ScreenStack,
   Screen as ScreenComponent,
   ScreenProps,
   // eslint-disable-next-line import/no-unresolved
 } from 'react-native-screens';
+import { useTheme } from '@react-navigation/native';
 import HeaderConfig from './HeaderConfig';
 import {
   NativeStackNavigationHelpers,
   NativeStackDescriptorMap,
 } from '../types';
 
-const Screen = (ScreenComponent as unknown) as React.ComponentType<
-  ScreenProps & {
-    stackPresentation?: 'push' | 'modal' | 'transparentModal';
-    stackAnimation?: 'default' | 'fade' | 'none';
-    onDismissed?: () => void;
-  }
->;
+const Screen = (ScreenComponent as unknown) as React.ComponentType<ScreenProps>;
 
 type Props = {
   state: StackNavigationState;
@@ -34,19 +28,38 @@ export default function NativeStackView({
   navigation,
   descriptors,
 }: Props) {
+  const { colors } = useTheme();
+
   return (
-    <ScreenStack style={styles.scenes}>
+    <ScreenStack style={styles.container}>
       {state.routes.map(route => {
         const { options, render: renderScene } = descriptors[route.key];
-        const { presentation = 'push', animation, contentStyle } = options;
+        const {
+          gestureEnabled,
+          stackPresentation = 'push',
+          stackAnimation,
+          contentStyle,
+        } = options;
 
         return (
           <Screen
             key={route.key}
             style={StyleSheet.absoluteFill}
-            stackPresentation={presentation}
-            stackAnimation={animation}
+            gestureEnabled={gestureEnabled}
+            stackPresentation={stackPresentation}
+            stackAnimation={stackAnimation}
+            onAppear={() => {
+              navigation.emit({
+                type: 'appear',
+                target: route.key,
+              });
+            }}
             onDismissed={() => {
+              navigation.emit({
+                type: 'dismiss',
+                target: route.key,
+              });
+
               navigation.dispatch({
                 ...StackActions.pop(),
                 source: route.key,
@@ -55,7 +68,15 @@ export default function NativeStackView({
             }}
           >
             <HeaderConfig {...options} route={route} />
-            <View style={[styles.content, contentStyle]}>{renderScene()}</View>
+            <View
+              style={[
+                styles.container,
+                { backgroundColor: colors.background },
+                contentStyle,
+              ]}
+            >
+              {renderScene()}
+            </View>
           </Screen>
         );
       })}
@@ -64,11 +85,7 @@ export default function NativeStackView({
 }
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    backgroundColor: '#eee',
-  },
-  scenes: {
+  container: {
     flex: 1,
   },
 });

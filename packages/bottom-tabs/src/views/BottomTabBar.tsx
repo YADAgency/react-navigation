@@ -9,221 +9,133 @@ import {
   ScaledSize,
   Dimensions,
 } from 'react-native';
-import { Route, NavigationContext } from '@react-navigation/core';
+import {
+  NavigationContext,
+  CommonActions,
+  useTheme,
+} from '@react-navigation/native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
 
-import TabBarIcon from './TabBarIcon';
+import BottomTabItem from './BottomTabItem';
 import { BottomTabBarProps } from '../types';
 
-type State = {
-  dimensions: { height: number; width: number };
-  layout: { height: number; width: number };
-  keyboard: boolean;
-  visible: Animated.Value;
-};
-
 type Props = BottomTabBarProps & {
-  activeTintColor: string;
-  inactiveTintColor: string;
+  activeTintColor?: string;
+  inactiveTintColor?: string;
 };
 
 const DEFAULT_TABBAR_HEIGHT = 50;
 const DEFAULT_MAX_TAB_ITEM_WIDTH = 125;
 
-export default class TabBarBottom extends React.Component<Props, State> {
-  static defaultProps = {
-    keyboardHidesTabBar: false,
-    activeTintColor: '#007AFF',
-    activeBackgroundColor: 'transparent',
-    inactiveTintColor: '#8E8E93',
-    inactiveBackgroundColor: 'transparent',
-    showLabel: true,
-    showIcon: true,
-    allowFontScaling: true,
-    adaptive: true,
-  };
+const useNativeDriver = Platform.OS !== 'web';
 
-  state = {
-    dimensions: Dimensions.get('window'),
-    layout: { height: 0, width: 0 },
-    keyboard: false,
-    visible: new Animated.Value(1),
-  };
+export default function BottomTabBar({
+  state,
+  navigation,
+  descriptors,
+  activeBackgroundColor,
+  activeTintColor,
+  adaptive = true,
+  allowFontScaling,
+  inactiveBackgroundColor,
+  inactiveTintColor,
+  keyboardHidesTabBar = false,
+  labelPosition,
+  labelStyle,
+  showIcon,
+  showLabel,
+  style,
+  tabStyle,
+}: Props) {
+  const { colors } = useTheme();
 
-  componentDidMount() {
-    Dimensions.addEventListener('change', this.handleOrientationChange);
+  const [dimensions, setDimensions] = React.useState(Dimensions.get('window'));
+  const [layout, setLayout] = React.useState({
+    height: 0,
+    width: dimensions.width,
+  });
+  const [keyboardShown, setKeyboardShown] = React.useState(false);
 
-    if (Platform.OS === 'ios') {
-      Keyboard.addListener('keyboardWillShow', this.handleKeyboardShow);
-      Keyboard.addListener('keyboardWillHide', this.handleKeyboardHide);
-    } else {
-      Keyboard.addListener('keyboardDidShow', this.handleKeyboardShow);
-      Keyboard.addListener('keyboardDidHide', this.handleKeyboardHide);
-    }
-  }
+  const [visible] = React.useState(() => new Animated.Value(0));
 
-  componentWillUnmount() {
-    Dimensions.removeEventListener('change', this.handleOrientationChange);
+  const { routes } = state;
 
-    if (Platform.OS === 'ios') {
-      Keyboard.removeListener('keyboardWillShow', this.handleKeyboardShow);
-      Keyboard.removeListener('keyboardWillHide', this.handleKeyboardHide);
-    } else {
-      Keyboard.removeListener('keyboardDidShow', this.handleKeyboardShow);
-      Keyboard.removeListener('keyboardDidHide', this.handleKeyboardHide);
-    }
-  }
-
-  private handleOrientationChange = ({ window }: { window: ScaledSize }) => {
-    this.setState({ dimensions: window });
-  };
-
-  private handleKeyboardShow = () =>
-    this.setState({ keyboard: true }, () =>
-      Animated.timing(this.state.visible, {
+  React.useEffect(() => {
+    if (keyboardShown) {
+      Animated.timing(visible, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
-      }).start()
-    );
+        useNativeDriver,
+      }).start();
+    }
+  }, [keyboardShown, visible]);
 
-  private handleKeyboardHide = () =>
-    Animated.timing(this.state.visible, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) {
-        this.setState({ keyboard: false });
+  React.useEffect(() => {
+    const handleOrientationChange = ({ window }: { window: ScaledSize }) => {
+      setDimensions(window);
+    };
+
+    const handleKeyboardShow = () => setKeyboardShown(true);
+
+    const handleKeyboardHide = () =>
+      Animated.timing(visible, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver,
+      }).start(({ finished }) => {
+        if (finished) {
+          setKeyboardShown(false);
+        }
+      });
+
+    Dimensions.addEventListener('change', handleOrientationChange);
+
+    if (Platform.OS === 'ios') {
+      Keyboard.addListener('keyboardWillShow', handleKeyboardShow);
+      Keyboard.addListener('keyboardWillHide', handleKeyboardHide);
+    } else {
+      Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
+      Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
+    }
+
+    return () => {
+      Dimensions.removeEventListener('change', handleOrientationChange);
+
+      if (Platform.OS === 'ios') {
+        Keyboard.removeListener('keyboardWillShow', handleKeyboardShow);
+        Keyboard.removeListener('keyboardWillHide', handleKeyboardHide);
+      } else {
+        Keyboard.removeListener('keyboardDidShow', handleKeyboardShow);
+        Keyboard.removeListener('keyboardDidHide', handleKeyboardHide);
       }
-    });
+    };
+  }, [visible]);
 
-  private handleLayout = (e: LayoutChangeEvent) => {
-    const { layout } = this.state;
+  const handleLayout = (e: LayoutChangeEvent) => {
     const { height, width } = e.nativeEvent.layout;
 
-    if (height === layout.height && width === layout.width) {
-      return;
-    }
-
-    this.setState({
-      layout: {
-        height,
-        width,
-      },
+    setLayout(layout => {
+      if (height === layout.height && width === layout.width) {
+        return layout;
+      } else {
+        return {
+          height,
+          width,
+        };
+      }
     });
   };
 
-  private renderLabel = ({
-    route,
-    focused,
-  }: {
-    route: Route<string>;
-    focused: boolean;
-  }) => {
-    const {
-      activeTintColor,
-      inactiveTintColor,
-      labelStyle,
-      showLabel,
-      showIcon,
-      allowFontScaling,
-    } = this.props;
-
-    if (showLabel === false) {
-      return null;
-    }
-
-    const label = this.props.getLabelText({ route });
-    const horizontal = this.shouldUseHorizontalLabels();
-    const color = focused ? activeTintColor : inactiveTintColor;
-
-    if (typeof label === 'string') {
-      return (
-        <Animated.Text
-          numberOfLines={1}
-          style={[
-            styles.label,
-            { color },
-            showIcon && horizontal ? styles.labelBeside : styles.labelBeneath,
-            labelStyle,
-          ]}
-          allowFontScaling={allowFontScaling}
-        >
-          {label}
-        </Animated.Text>
-      );
-    }
-
-    if (typeof label === 'string') {
-      return label;
-    }
-
-    return label({ focused, color });
-  };
-
-  private renderIcon = ({
-    route,
-    focused,
-  }: {
-    route: Route<string>;
-    focused: boolean;
-  }) => {
-    const {
-      activeTintColor,
-      inactiveTintColor,
-      renderIcon,
-      showIcon,
-    } = this.props;
-
-    if (showIcon === false) {
-      return null;
-    }
-
-    const horizontal = this.shouldUseHorizontalLabels();
-
-    const activeOpacity = focused ? 1 : 0;
-    const inactiveOpacity = focused ? 0 : 1;
-
-    return (
-      <TabBarIcon
-        route={route}
-        size={horizontal ? 17 : 24}
-        activeOpacity={activeOpacity}
-        inactiveOpacity={inactiveOpacity}
-        activeTintColor={activeTintColor}
-        inactiveTintColor={inactiveTintColor}
-        renderIcon={renderIcon}
-        style={horizontal ? styles.iconHorizontal : styles.iconVertical}
-      />
-    );
-  };
-
-  private shouldUseHorizontalLabels = () => {
-    const { state, adaptive, tabStyle, labelPosition } = this.props;
-    const { dimensions } = this.state;
-    const { routes } = state;
-    const isLandscape = dimensions.width > dimensions.height;
-
+  const shouldUseHorizontalLabels = () => {
     if (labelPosition) {
-      let position;
-
-      if (typeof labelPosition === 'string') {
-        position = labelPosition;
-      } else {
-        position = labelPosition({ dimensions });
-      }
-
-      if (position) {
-        return position === 'beside-icon';
-      }
+      return labelPosition === 'beside-icon';
     }
 
     if (!adaptive) {
       return false;
     }
 
-    if (dimensions.width >= 768) {
+    if (layout.width >= 768) {
       // Screen size matches a tablet
       let maxTabItemWidth = DEFAULT_MAX_TAB_ITEM_WIDTH;
 
@@ -237,120 +149,123 @@ export default class TabBarBottom extends React.Component<Props, State> {
         }
       }
 
-      return routes.length * maxTabItemWidth <= dimensions.width;
+      return routes.length * maxTabItemWidth <= layout.width;
     } else {
+      const isLandscape = dimensions.width > dimensions.height;
+
       return isLandscape;
     }
   };
 
-  render() {
-    const {
-      state,
-      descriptors,
-      keyboardHidesTabBar,
-      activeBackgroundColor,
-      inactiveBackgroundColor,
-      onTabPress,
-      onTabLongPress,
-      getAccessibilityLabel,
-      getAccessibilityRole,
-      getAccessibilityStates,
-      renderButton,
-      getTestID,
-      style,
-      tabStyle,
-    } = this.props;
-    const { routes } = state;
+  return (
+    <SafeAreaConsumer>
+      {insets => (
+        <Animated.View
+          style={[
+            styles.tabBar,
+            {
+              backgroundColor: colors.card,
+              borderTopColor: colors.border,
+            },
+            keyboardHidesTabBar
+              ? {
+                  // When the keyboard is shown, slide down the tab bar
+                  transform: [
+                    {
+                      translateY: visible.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [layout.height, 0],
+                      }),
+                    },
+                  ],
+                  // Absolutely position the tab bar so that the content is below it
+                  // This is needed to avoid gap at bottom when the tab bar is hidden
+                  position: keyboardShown ? 'absolute' : null,
+                }
+              : null,
+            {
+              height: DEFAULT_TABBAR_HEIGHT + (insets ? insets.bottom : 0),
+              paddingBottom: insets ? insets.bottom : 0,
+            },
+            style,
+          ]}
+          pointerEvents={keyboardHidesTabBar && keyboardShown ? 'none' : 'auto'}
+        >
+          <View style={styles.content} onLayout={handleLayout}>
+            {routes.map((route, index) => {
+              const focused = index === state.index;
+              const { options } = descriptors[route.key];
 
-    return (
-      <SafeAreaConsumer>
-        {insets => (
-          <Animated.View
-            style={[
-              styles.tabBar,
-              keyboardHidesTabBar
-                ? {
-                    // When the keyboard is shown, slide down the tab bar
-                    transform: [
-                      {
-                        translateY: this.state.visible.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [this.state.layout.height, 0],
-                        }),
-                      },
-                    ],
-                    // Absolutely position the tab bar so that the content is below it
-                    // This is needed to avoid gap at bottom when the tab bar is hidden
-                    position: this.state.keyboard ? 'absolute' : null,
-                  }
-                : null,
-              {
-                height: DEFAULT_TABBAR_HEIGHT + (insets ? insets.bottom : 0),
-                paddingBottom: insets ? insets.bottom : 0,
-              },
-              style,
-            ]}
-            pointerEvents={
-              keyboardHidesTabBar && this.state.keyboard ? 'none' : 'auto'
-            }
-          >
-            <View style={styles.content} onLayout={this.handleLayout}>
-              {routes.map((route, index) => {
-                const focused = index === state.index;
-                const scene = { route, focused };
-                const accessibilityLabel = getAccessibilityLabel({
-                  route,
+              const onPress = () => {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
                 });
 
-                const accessibilityRole = getAccessibilityRole({
-                  route,
+                if (!focused && !event.defaultPrevented) {
+                  navigation.dispatch({
+                    ...CommonActions.navigate(route.name),
+                    target: state.key,
+                  });
+                }
+              };
+
+              const onLongPress = () => {
+                navigation.emit({
+                  type: 'tabLongPress',
+                  target: route.key,
                 });
+              };
 
-                const accessibilityStates = getAccessibilityStates(scene);
+              const label =
+                options.tabBarLabel !== undefined
+                  ? options.tabBarLabel
+                  : options.title !== undefined
+                  ? options.title
+                  : route.name;
 
-                const testID = getTestID({ route });
+              const accessibilityLabel =
+                options.tabBarAccessibilityLabel !== undefined
+                  ? options.tabBarAccessibilityLabel
+                  : typeof label === 'string'
+                  ? `${label}, tab, ${index + 1} of ${routes.length}`
+                  : undefined;
 
-                const backgroundColor = focused
-                  ? activeBackgroundColor
-                  : inactiveBackgroundColor;
-
-                return (
-                  <NavigationContext.Provider
-                    key={route.key}
-                    value={descriptors[route.key].navigation}
-                  >
-                    {renderButton({
-                      route,
-                      onPress: () => onTabPress({ route }),
-                      onLongPress: () => onTabLongPress({ route }),
-                      testID,
-                      accessibilityLabel,
-                      accessibilityRole,
-                      accessibilityStates,
-                      style: [
-                        styles.tab,
-                        { backgroundColor },
-                        this.shouldUseHorizontalLabels()
-                          ? styles.tabLandscape
-                          : styles.tabPortrait,
-                        tabStyle,
-                      ],
-                      children: (
-                        <React.Fragment>
-                          {this.renderIcon(scene)}
-                          {this.renderLabel(scene)}
-                        </React.Fragment>
-                      ),
-                    })}
-                  </NavigationContext.Provider>
-                );
-              })}
-            </View>
-          </Animated.View>
-        )}
-      </SafeAreaConsumer>
-    );
-  }
+              return (
+                <NavigationContext.Provider
+                  key={route.key}
+                  value={descriptors[route.key].navigation}
+                >
+                  <BottomTabItem
+                    route={route}
+                    focused={focused}
+                    horizontal={shouldUseHorizontalLabels()}
+                    onPress={onPress}
+                    onLongPress={onLongPress}
+                    accessibilityLabel={accessibilityLabel}
+                    testID={options.tabBarTestID}
+                    allowFontScaling={allowFontScaling}
+                    activeTintColor={activeTintColor}
+                    inactiveTintColor={inactiveTintColor}
+                    activeBackgroundColor={activeBackgroundColor}
+                    inactiveBackgroundColor={inactiveBackgroundColor}
+                    button={options.tabBarButton}
+                    icon={options.tabBarIcon}
+                    label={label}
+                    showIcon={showIcon}
+                    showLabel={showLabel}
+                    labelStyle={labelStyle}
+                    style={tabStyle}
+                  />
+                </NavigationContext.Provider>
+              );
+            })}
+          </View>
+        </Animated.View>
+      )}
+    </SafeAreaConsumer>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -358,43 +273,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0, 0, 0, .3)',
     elevation: 8,
   },
   content: {
     flex: 1,
     flexDirection: 'row',
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  tabPortrait: {
-    justifyContent: 'flex-end',
-    flexDirection: 'column',
-  },
-  tabLandscape: {
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  iconVertical: {
-    flex: 1,
-  },
-  iconHorizontal: {
-    height: '100%',
-  },
-  label: {
-    textAlign: 'center',
-    backgroundColor: 'transparent',
-  },
-  labelBeneath: {
-    fontSize: 11,
-    marginBottom: 1.5,
-  },
-  labelBeside: {
-    fontSize: 12,
-    marginLeft: 20,
   },
 });

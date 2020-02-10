@@ -1,8 +1,6 @@
 import * as React from 'react';
 import {
   TouchableWithoutFeedbackProps,
-  AccessibilityRole,
-  AccessibilityStates,
   StyleProp,
   TextStyle,
   ViewStyle,
@@ -12,19 +10,18 @@ import {
   NavigationProp,
   ParamListBase,
   Descriptor,
-  Route,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import { TabNavigationState } from '@react-navigation/routers';
 
 export type BottomTabNavigationEventMap = {
   /**
    * Event which fires on tapping on the tab in the tab bar.
    */
-  tabPress: undefined;
+  tabPress: { data: undefined; canPreventDefault: true };
   /**
    * Event which fires on long press on the tab in the tab bar.
    */
-  tabLongPress: undefined;
+  tabLongPress: { data: undefined };
 };
 
 export type LabelPosition = 'beside-icon' | 'below-icon';
@@ -102,6 +99,12 @@ export type BottomTabNavigationOptions = {
    * Renders `TouchableWithoutFeedback` by default.
    */
   tabBarButton?: (props: BottomTabBarButtonProps) => React.ReactNode;
+
+  /**
+   * Whether this screen should be unmounted when navigating away from it.
+   * Defaults to `false`.
+   */
+  unmountOnBlur?: boolean;
 };
 
 export type BottomTabDescriptor = Descriptor<
@@ -121,11 +124,6 @@ export type BottomTabNavigationConfig = {
    * Set it to `false` if you want to render all screens on initial render.
    */
   lazy?: boolean;
-  /**
-   * Whether a screen should be unmounted when navigating away from it.
-   * Defaults to `false`.
-   */
-  unmountInactiveScreens?: boolean;
   /**
    * Function that returns a React element to display as the tab bar.
    */
@@ -179,14 +177,9 @@ export type BottomTabBarOptions = {
   tabStyle?: StyleProp<ViewStyle>;
   /**
    * Whether the label is renderd below the icon or beside the icon.
-   * When a function is passed, it receives the device dimensions to render the label differently.
    * By default, in `vertical` orinetation, label is rendered below and in `horizontal` orientation, it's renderd beside.
    */
-  labelPosition?:
-    | LabelPosition
-    | ((options: {
-        dimensions: { height: number; width: number };
-      }) => LabelPosition);
+  labelPosition?: LabelPosition;
   /**
    * Whether the label position should adapt to the orientation.
    */
@@ -200,37 +193,7 @@ export type BottomTabBarOptions = {
 export type BottomTabBarProps = BottomTabBarOptions & {
   state: TabNavigationState;
   descriptors: BottomTabDescriptorMap;
-  navigation: NavigationHelpers<ParamListBase>;
-  onTabPress: (props: { route: Route<string> }) => void;
-  onTabLongPress: (props: { route: Route<string> }) => void;
-  getAccessibilityLabel: (props: {
-    route: Route<string>;
-  }) => string | undefined;
-  getAccessibilityRole: (props: {
-    route: Route<string>;
-  }) => AccessibilityRole | undefined;
-  getAccessibilityStates: (props: {
-    route: Route<string>;
-    focused: boolean;
-  }) => AccessibilityStates[];
-  getLabelText: (props: {
-    route: Route<string>;
-  }) =>
-    | ((scene: {
-        focused: boolean;
-        color: string;
-      }) => React.ReactNode | undefined)
-    | string;
-  getTestID: (props: { route: Route<string> }) => string | undefined;
-  renderButton: (
-    props: { route: Route<string> } & BottomTabBarButtonProps
-  ) => React.ReactNode;
-  renderIcon: (props: {
-    route: Route<string>;
-    focused: boolean;
-    color: string;
-    size: number;
-  }) => React.ReactNode;
+  navigation: NavigationHelpers<ParamListBase, BottomTabNavigationEventMap>;
 };
 
 export type BottomTabBarButtonProps = TouchableWithoutFeedbackProps & {

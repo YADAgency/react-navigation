@@ -1,14 +1,14 @@
 import * as React from 'react';
 import {
+  Animated,
   View,
   StyleSheet,
   LayoutChangeEvent,
   Platform,
   ViewStyle,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { EdgeInsets } from 'react-native-safe-area-context';
-import { Route } from '@react-navigation/core';
+import { Route } from '@react-navigation/native';
 import HeaderBackButton from './HeaderBackButton';
 import HeaderBackground from './HeaderBackground';
 import memoize from '../../utils/memoize';
@@ -53,7 +53,10 @@ const warnIfHeaderStylesDefined = (styles: Record<string, any>) => {
   });
 };
 
-export const getDefaultHeaderHeight = (layout: Layout, insets: EdgeInsets) => {
+export const getDefaultHeaderHeight = (
+  layout: Layout,
+  statusBarHeight: number
+) => {
   const isLandscape = layout.width > layout.height;
 
   let headerHeight;
@@ -71,7 +74,7 @@ export const getDefaultHeaderHeight = (layout: Layout, insets: EdgeInsets) => {
     headerHeight = 64;
   }
 
-  return headerHeight + insets.top;
+  return headerHeight + statusBarHeight;
 };
 
 export default class HeaderSegment extends React.Component<Props, State> {
@@ -114,8 +117,8 @@ export default class HeaderSegment extends React.Component<Props, State> {
     (
       styleInterpolator: StackHeaderStyleInterpolator,
       layout: Layout,
-      current: Animated.Node<number>,
-      next: Animated.Node<number> | undefined,
+      current: Animated.AnimatedInterpolation,
+      next: Animated.AnimatedInterpolation | undefined,
       titleLayout: Layout | undefined,
       leftLabelLayout: Layout | undefined
     ) =>
@@ -163,6 +166,7 @@ export default class HeaderSegment extends React.Component<Props, State> {
       headerRightContainerStyle: rightContainerStyle,
       headerTitleContainerStyle: titleContainerStyle,
       headerStyle: customHeaderStyle,
+      headerStatusBarHeight = insets.top,
       styleInterpolator,
     } = this.props;
 
@@ -184,7 +188,7 @@ export default class HeaderSegment extends React.Component<Props, State> {
     );
 
     const {
-      height = getDefaultHeaderHeight(layout, insets),
+      height = getDefaultHeaderHeight(layout, headerStatusBarHeight),
       minHeight,
       maxHeight,
       backgroundColor,
@@ -272,6 +276,7 @@ export default class HeaderSegment extends React.Component<Props, State> {
       // @ts-ignore
       if (safeStyles[styleProp] === undefined) {
         // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete safeStyles[styleProp];
       }
     }
@@ -310,7 +315,10 @@ export default class HeaderSegment extends React.Component<Props, State> {
           pointerEvents="box-none"
           style={[{ height, minHeight, maxHeight, opacity, transform }]}
         >
-          <View pointerEvents="none" style={{ height: insets.top }} />
+          <View
+            pointerEvents="none"
+            style={{ height: headerStatusBarHeight }}
+          />
           <View pointerEvents="box-none" style={styles.content}>
             {leftButton ? (
               <Animated.View
@@ -339,7 +347,8 @@ export default class HeaderSegment extends React.Component<Props, State> {
                 children: currentTitle,
                 onLayout: this.handleTitleLayout,
                 allowFontScaling: titleAllowFontScaling,
-                style: [{ color: headerTintColor }, customTitleStyle],
+                tintColor: headerTintColor,
+                style: customTitleStyle,
               })}
             </Animated.View>
             {right ? (

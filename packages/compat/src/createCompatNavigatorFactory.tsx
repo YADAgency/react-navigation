@@ -6,7 +6,7 @@ import {
   TypedNavigator,
   NavigationProp,
   RouteProp,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import CompatScreen from './CompatScreen';
 import ScreenPropsContext from './ScreenPropsContext';
 import createCompatNavigationProp from './createCompatNavigationProp';
@@ -47,7 +47,7 @@ export default function createCompatNavigatorFactory<
   >(
     routeConfig: CompatRouteConfig<NavigationPropType>,
     navigationConfig: Partial<Omit<NavigationConfig, 'screenOptions'>> & {
-      order?: Array<Extract<keyof ParamList, string>>;
+      order?: Extract<keyof ParamList, string>[];
       defaultNavigationOptions?: ScreenOptions;
       navigationOptions?: Record<string, any>;
     } = {}
@@ -110,7 +110,7 @@ export default function createCompatNavigatorFactory<
                   ? {
                       navigation: createCompatNavigationProp<
                         NavigationPropType
-                      >(navigation, route),
+                      >(navigation, route, {}),
                       navigationOptions: defaultNavigationOptions || {},
                       screenProps,
                     }
@@ -165,7 +165,25 @@ export default function createCompatNavigatorFactory<
     return Navigator;
   };
 
-  createCompatNavigator.isCompat = true;
+  Object.defineProperties(createCompatNavigator, {
+    isCompat: {
+      get() {
+        return true;
+      },
+    },
+    router: {
+      get() {
+        throw new Error(
+          "It's no longer possible to access the router with the 'router' property."
+        );
+      },
+      set() {
+        throw new Error(
+          "It's no longer possible to override the router by assigning the 'router' property."
+        );
+      },
+    },
+  });
 
   return createCompatNavigator;
 }

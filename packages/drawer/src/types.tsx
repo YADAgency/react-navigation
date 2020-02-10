@@ -6,7 +6,7 @@ import {
   NavigationProp,
   Descriptor,
   NavigationHelpers,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import { DrawerNavigationState } from '@react-navigation/routers';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
@@ -20,14 +20,14 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
   /**
    * Position of the drawer on the screen. Defaults to `left`.
    */
-  drawerPosition: 'left' | 'right';
+  drawerPosition?: 'left' | 'right';
   /**
    * Type of the drawer. It determines how the drawer looks and animates.
    * - `front`: Traditional drawer which covers the screen with a overlay behind it.
    * - `back`: The drawer is revealed behind the screen on swipe.
    * - `slide`: Both the screen and the drawer slide on swipe to reveal the drawer.
    */
-  drawerType: 'front' | 'back' | 'slide';
+  drawerType?: 'front' | 'back' | 'slide';
   /**
    * How far from the edge of the screen the swipe gesture should activate.
    */
@@ -35,12 +35,12 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
   /**
    * Whether the statusbar should be hidden when the drawer is pulled or opens,
    */
-  hideStatusBar: boolean;
+  hideStatusBar?: boolean;
   /**
    * Whether the keyboard should be dismissed when the swipe gesture begins.
    * Defaults to `'on-drag'`. Set to `'none'` to disable keyboard handling.
    */
-  keyboardDismissMode: 'on-drag' | 'none';
+  keyboardDismissMode?: 'on-drag' | 'none';
   /**
    * Minimum swipe distance threshold that should activate opening the drawer.
    */
@@ -53,7 +53,7 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
   /**
    * Animation of the statusbar when hiding it. use in combination with `hideStatusBar`.
    */
-  statusBarAnimation: 'slide' | 'none' | 'fade';
+  statusBarAnimation?: 'slide' | 'none' | 'fade';
   /**
    * Props to pass to the underlying pan gesture handler.
    */
@@ -62,17 +62,16 @@ export type DrawerNavigationConfig<T = DrawerContentOptions> = {
    * Whether the screens should render the first time they are accessed. Defaults to `true`.
    * Set it to `false` if you want to render all screens on initial render.
    */
-  lazy: boolean;
-  /**
-   * Whether a screen should be unmounted when navigating away from it.
-   * Defaults to `false`.
-   */
-  unmountInactiveScreens?: boolean;
+  lazy?: boolean;
   /**
    * Function that returns React element to render as the content of the drawer, for example, navigation items.
    * Defaults to `DrawerContent`.
    */
+<<<<<<< HEAD
   drawerContent: React.ComponentType<DrawerContentComponentProps<T>>;
+=======
+  drawerContent?: (props: DrawerContentComponentProps<T>) => React.ReactNode;
+>>>>>>> 6c188addc67343ddd3b9d87cae538e4acab08d02
   /**
    * Options for the content component which will be passed as props.
    */
@@ -131,21 +130,23 @@ export type DrawerNavigationOptions = {
    * Whether the header element is shown or not.
    */
   headerShown?: boolean;
+  
+  /**
+   * Whether this screen should be unmounted when navigating away from it.
+   * Defaults to `false`.
+   */
+  unmountOnBlur?: boolean;
 };
 
 export type DrawerContentComponentProps<T = DrawerContentOptions> = T & {
   state: DrawerNavigationState;
-  navigation: NavigationHelpers<ParamListBase>;
+  navigation: DrawerNavigationHelpers;
   descriptors: DrawerDescriptorMap;
   /**
    * Animated node which represents the current progress of the drawer's open state.
    * `0` is closed, `1` is open.
    */
   progress: Animated.Node<number>;
-  /**
-   * Position of the drawer on the screen.
-   */
-  drawerPosition: 'left' | 'right';
 };
 
 export type DrawerContentOptions = {
@@ -187,11 +188,11 @@ export type DrawerNavigationEventMap = {
   /**
    * Event which fires when the drawer opens.
    */
-  drawerOpen: undefined;
+  drawerOpen: { data: undefined };
   /**
    * Event which fires when the drawer closes.
    */
-  drawerClose: undefined;
+  drawerClose: { data: undefined };
 };
 
 export type DrawerNavigationHelpers = NavigationHelpers<

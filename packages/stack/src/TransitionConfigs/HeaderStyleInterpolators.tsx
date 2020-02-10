@@ -1,11 +1,10 @@
-import { I18nManager } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Animated, I18nManager } from 'react-native';
 import {
   StackHeaderInterpolationProps,
   StackHeaderInterpolatedStyle,
 } from '../types';
 
-const { interpolate, add } = Animated;
+const { add } = Animated;
 
 /**
  * Standard UIKit style animation for the header where the title fades into the back button label.
@@ -34,11 +33,24 @@ export function forUIKit({
   // The back title also animates in from this position
   const rightOffset = layouts.screen.width / 4;
 
-  const progress = add(current.progress, next ? next.progress : 0);
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
 
   return {
     leftButtonStyle: {
-      opacity: interpolate(progress, {
+      opacity: progress.interpolate({
         inputRange: [0.3, 1, 1.5],
         outputRange: [0, 1, 0],
       }),
@@ -46,7 +58,7 @@ export function forUIKit({
     leftLabelStyle: {
       transform: [
         {
-          translateX: interpolate(progress, {
+          translateX: progress.interpolate({
             inputRange: [0, 1, 2],
             outputRange: I18nManager.isRTL
               ? [-rightOffset, 0, leftLabelOffset]
@@ -56,19 +68,19 @@ export function forUIKit({
       ],
     },
     rightButtonStyle: {
-      opacity: interpolate(progress, {
+      opacity: progress.interpolate({
         inputRange: [0.3, 1, 1.5],
         outputRange: [0, 1, 0],
       }),
     },
     titleStyle: {
-      opacity: interpolate(progress, {
+      opacity: progress.interpolate({
         inputRange: [0, 0.4, 1, 1.5],
         outputRange: [0, 0.1, 1, 0],
       }),
       transform: [
         {
-          translateX: interpolate(progress, {
+          translateX: progress.interpolate({
             inputRange: [0.5, 1, 2],
             outputRange: I18nManager.isRTL
               ? [-titleLeftOffset, 0, rightOffset]
@@ -80,7 +92,7 @@ export function forUIKit({
     backgroundStyle: {
       transform: [
         {
-          translateX: interpolate(progress, {
+          translateX: progress.interpolate({
             inputRange: [0, 1, 2],
             outputRange: I18nManager.isRTL
               ? [-layouts.screen.width, 0, layouts.screen.width]
@@ -99,8 +111,22 @@ export function forFade({
   current,
   next,
 }: StackHeaderInterpolationProps): StackHeaderInterpolatedStyle {
-  const progress = add(current.progress, next ? next.progress : 0);
-  const opacity = interpolate(progress, {
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
+
+  const opacity = progress.interpolate({
     inputRange: [0, 1, 2],
     outputRange: [0, 1, 0],
   });
@@ -110,7 +136,7 @@ export function forFade({
     rightButtonStyle: { opacity },
     titleStyle: { opacity },
     backgroundStyle: {
-      opacity: interpolate(progress, {
+      opacity: progress.interpolate({
         inputRange: [0, 1, 1.9, 2],
         outputRange: [0, 1, 1, 0],
       }),
@@ -119,15 +145,29 @@ export function forFade({
 }
 
 /**
- * Simple translate animation to translate the header along with the sliding screen.
+ * Simple translate animation to translate the header to left.
  */
-export function forStatic({
+export function forSlideLeft({
   current,
   next,
   layouts: { screen },
 }: StackHeaderInterpolationProps): StackHeaderInterpolatedStyle {
-  const progress = add(current.progress, next ? next.progress : 0);
-  const translateX = interpolate(progress, {
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
+
+  const translateX = progress.interpolate({
     inputRange: [0, 1, 2],
     outputRange: I18nManager.isRTL
       ? [-screen.width, 0, screen.width]
@@ -135,6 +175,83 @@ export function forStatic({
   });
 
   const transform = [{ translateX }];
+
+  return {
+    leftButtonStyle: { transform },
+    rightButtonStyle: { transform },
+    titleStyle: { transform },
+    backgroundStyle: { transform },
+  };
+}
+
+/**
+ * Simple translate animation to translate the header to right.
+ */
+export function forSlideRight({
+  current,
+  next,
+  layouts: { screen },
+}: StackHeaderInterpolationProps): StackHeaderInterpolatedStyle {
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
+
+  const translateX = progress.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: I18nManager.isRTL
+      ? [screen.width, 0, -screen.width]
+      : [-screen.width, 0, screen.width],
+  });
+
+  const transform = [{ translateX }];
+
+  return {
+    leftButtonStyle: { transform },
+    rightButtonStyle: { transform },
+    titleStyle: { transform },
+    backgroundStyle: { transform },
+  };
+}
+
+/**
+ * Simple translate animation to translate the header to slide up.
+ */
+export function forSlideUp({
+  current,
+  next,
+}: StackHeaderInterpolationProps): StackHeaderInterpolatedStyle {
+  const progress = add(
+    current.progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    }),
+    next
+      ? next.progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolate: 'clamp',
+        })
+      : 0
+  );
+
+  const translateY = progress.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: ['-100%', '0%', '-100%'],
+  });
+
+  const transform = [{ translateY }];
 
   return {
     leftButtonStyle: { transform },

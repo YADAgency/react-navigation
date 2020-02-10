@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-cycle
 import * as CommonActions from './CommonActions';
 import * as React from 'react';
 
@@ -18,11 +17,15 @@ export type NavigationState = {
    */
   routeNames: string[];
   /**
+   * Alternative entries for history.
+   */
+  history?: unknown[];
+  /**
    * List of rendered routes.
    */
-  routes: Array<
-    Route<string> & { state?: NavigationState | PartialState<NavigationState> }
-  >;
+  routes: (Route<string> & {
+    state?: NavigationState | PartialState<NavigationState>;
+  })[];
   /**
    * Custom type for the state, whether it's for tab, stack, drawer etc.
    * During rehydration, the state will be discarded if type doesn't match with router type.
@@ -38,7 +41,7 @@ export type NavigationState = {
 export type InitialState = Partial<
   Omit<NavigationState, 'stale' | 'routes'>
 > & {
-  routes: Array<Omit<Route<string>, 'key'> & { state?: InitialState }>;
+  routes: (Omit<Route<string>, 'key'> & { state?: InitialState })[];
 };
 
 export type PartialState<State extends NavigationState> = Partial<
@@ -46,9 +49,10 @@ export type PartialState<State extends NavigationState> = Partial<
 > & {
   stale?: true;
   type?: string;
-  routes: Array<
-    Omit<Route<string>, 'key'> & { key?: string; state?: InitialState }
-  >;
+  routes: (Omit<Route<string>, 'key'> & {
+    key?: string;
+    state?: InitialState;
+  })[];
 };
 
 export type Route<RouteName extends string> = {
@@ -71,6 +75,10 @@ export type NavigationAction = {
    * Type of the action (e.g. `NAVIGATE`)
    */
   type: string;
+  /**
+   * Additional data for the action
+   */
+  payload?: object;
   /**
    * Key of the route which dispatched this action.
    */
@@ -203,31 +211,52 @@ export type Router<
 
 export type ParamListBase = Record<string, object | undefined>;
 
-export type EventMapBase = {
-  focus: undefined;
-  blur: undefined;
+export type EventMapBase = Record<
+  string,
+  { data?: any; canPreventDefault?: boolean }
+>;
+
+export type EventMapCore<State extends NavigationState> = {
+  focus: { data: undefined };
+  blur: { data: undefined };
+  state: { data: { state: State } };
 };
 
-export type EventArg<EventName extends string, Data = undefined> = {
+export type EventArg<
+  EventName extends string,
+  CanPreventDefault extends boolean | undefined = false,
+  Data = undefined
+> = {
   /**
    * Type of the event (e.g. `focus`, `blur`)
    */
   readonly type: EventName;
-  /**
-   * Whether `event.preventDefault()` was called on this event object.
-   */
-  readonly defaultPrevented: boolean;
-  /**
-   * Prevent the default action which happens on this event.
-   */
-  preventDefault(): void;
-} & (Data extends undefined ? {} : { readonly data: Data });
+} & (CanPreventDefault extends true
+  ? {
+      /**
+       * Whether `event.preventDefault()` was called on this event object.
+       */
+      readonly defaultPrevented: boolean;
+      /**
+       * Prevent the default action which happens on this event.
+       */
+      preventDefault(): void;
+    }
+  : {}) &
+  (Data extends undefined ? {} : { readonly data: Data });
 
-export type EventListenerCallback<EventName extends string, Data> = (
-  e: EventArg<EventName, Data>
+export type EventListenerCallback<
+  EventMap extends EventMapBase,
+  EventName extends keyof EventMap
+> = (
+  e: EventArg<
+    Extract<EventName, string>,
+    EventMap[EventName]['canPreventDefault'],
+    EventMap[EventName]['data']
+  >
 ) => void;
 
-export type EventConsumer<EventMap extends Record<string, any>> = {
+export type EventConsumer<EventMap extends EventMapBase> = {
   /**
    * Subscribe to events from the parent navigator.
    *
@@ -236,15 +265,15 @@ export type EventConsumer<EventMap extends Record<string, any>> = {
    */
   addListener<EventName extends Extract<keyof EventMap, string>>(
     type: EventName,
-    callback: EventListenerCallback<EventName, EventMap[EventName]>
+    callback: EventListenerCallback<EventMap, EventName>
   ): () => void;
   removeListener<EventName extends Extract<keyof EventMap, string>>(
     type: EventName,
-    callback: EventListenerCallback<EventName, EventMap[EventName]>
+    callback: EventListenerCallback<EventMap, EventName>
   ): void;
 };
 
-export type EventEmitter<EventMap extends Record<string, any>> = {
+export type EventEmitter<EventMap extends EventMapBase> = {
   /**
    * Emit an event to child screens.
    *
@@ -257,23 +286,31 @@ export type EventEmitter<EventMap extends Record<string, any>> = {
     options: {
       type: EventName;
       target?: string;
-    } & (EventMap[EventName] extends undefined
-      ? {}
-      : { data: EventMap[EventName] })
-  ): EventArg<EventName, EventMap[EventName]>;
+    } & (EventMap[EventName]['canPreventDefault'] extends true
+      ? { canPreventDefault: true }
+      : {}) &
+      (EventMap[EventName]['data'] extends undefined
+        ? {}
+        : { data: EventMap[EventName]['data'] })
+  ): EventArg<
+    EventName,
+    EventMap[EventName]['canPreventDefault'],
+    EventMap[EventName]['data']
+  >;
 };
 
 export class PrivateValueStore<A, B, C> {
   /**
-   * TypeScript requires a type to be actually used to be able to infer it.
-   * This is a hacky way of storing type in a property without surfacing it in intellisense.
+   * UGLY HACK! DO NOT USE THE TYPE!!!
+   *
+   * TypeScript requires a type to be used to be able to infer it.
+   * The type should exist as its own without any operations such as union.
+   * So we need to figure out a way to store this type in a property.
+   * The problem with a normal property is that it shows up in intelliSense.
+   * Adding private keyword works, but the annotation is stripped away in declaration.
+   * Turns out if we use an empty string, it doesn't show up in intelliSense.
    */
-  // @ts-ignore
-  private __private_value_type_a?: A;
-  // @ts-ignore
-  private __private_value_type_b?: B;
-  // @ts-ignore
-  private __private_value_type_c?: C;
+  protected ''?: { a: A; b: B; c: C };
 }
 
 type NavigationHelpersCommon<
@@ -333,13 +370,6 @@ type NavigationHelpersCommon<
   reset(state: PartialState<State> | State): void;
 
   /**
-   * Reset the navigation state of the root navigator to the provided state.
-   *
-   * @param state Navigation state object.
-   */
-  resetRoot(state?: PartialState<NavigationState> | NavigationState): void;
-
-  /**
    * Go back to the previous route in history.
    */
   goBack(): void;
@@ -361,7 +391,7 @@ type NavigationHelpersCommon<
 
 export type NavigationHelpers<
   ParamList extends ParamListBase,
-  EventMap extends Record<string, any> = {}
+  EventMap extends EventMapBase = {}
 > = NavigationHelpersCommon<ParamList> &
   EventEmitter<EventMap> & {
     /**
@@ -401,7 +431,7 @@ export type NavigationProp<
   RouteName extends keyof ParamList = string,
   State extends NavigationState = NavigationState,
   ScreenOptions extends object = {},
-  EventMap extends Record<string, any> = {}
+  EventMap extends EventMapBase = {}
 > = NavigationHelpersCommon<ParamList, State> & {
   /**
    * Update the param object for the route.
@@ -432,7 +462,7 @@ export type NavigationProp<
    * Note that this method doesn't re-render screen when the result changes. So don't use it in `render`.
    */
   dangerouslyGetState(): State;
-} & EventConsumer<EventMap & EventMapBase> &
+} & EventConsumer<EventMap & EventMapCore<State>> &
   PrivateValueStore<ParamList, RouteName, EventMap>;
 
 export type RouteProp<
@@ -486,7 +516,7 @@ export type Descriptor<
   RouteName extends keyof ParamList = string,
   State extends NavigationState = NavigationState,
   ScreenOptions extends object = {},
-  EventMap extends Record<string, any> = {}
+  EventMap extends EventMapBase = {}
 > = {
   /**
    * Render the component associated with this route.
@@ -533,16 +563,13 @@ export type RouteConfig<
   /**
    * Initial params object for the route.
    */
-  initialParams?: ParamList[RouteName];
+  initialParams?: Partial<ParamList[RouteName]>;
 } & (
   | {
       /**
        * React component to render for this screen.
        */
-      component: React.ComponentType<{
-        route: RouteProp<ParamList, RouteName>;
-        navigation: any;
-      }>;
+      component: React.ComponentType<any>;
     }
   | {
       /**
@@ -556,15 +583,21 @@ export type RouteConfig<
 );
 
 export type NavigationContainerRef =
-  | (NavigationHelpers<ParamListBase> & {
-      /**
-       * Reset the navigation state of the root navigator to the provided state.
-       *
-       * @param state Navigation state object.
-       */
-      resetRoot(state?: PartialState<NavigationState> | NavigationState): void;
-      getRootState(): NavigationState;
-    })
+  | (NavigationHelpers<ParamListBase> &
+      EventConsumer<{ state: { data: { state: NavigationState } } }> & {
+        /**
+         * Reset the navigation state of the root navigator to the provided state.
+         *
+         * @param state Navigation state object.
+         */
+        resetRoot(
+          state?: PartialState<NavigationState> | NavigationState
+        ): void;
+        /**
+         * Get the rehydrated navigation state of the navigation tree.
+         */
+        getRootState(): NavigationState;
+      })
   | undefined
   | null;
 

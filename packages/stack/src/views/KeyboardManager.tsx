@@ -11,14 +11,15 @@ type Props = {
 };
 
 export default class KeyboardManager extends React.Component<Props> {
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.clearKeyboardTimeout();
-  };
+  }
+
   // Numeric id of the previously focused text input
   // When a gesture didn't change the tab, we can restore the focused input with this
   private previouslyFocusedTextInput: number | null = null;
   private startTimestamp: number = 0;
-  private keyboardTimeout: NodeJS.Timeout | undefined;
+  private keyboardTimeout: any;
 
   private clearKeyboardTimeout = () => {
     if (this.keyboardTimeout !== undefined) {
@@ -31,6 +32,7 @@ export default class KeyboardManager extends React.Component<Props> {
     if (!this.props.enabled) {
       return;
     }
+
     this.clearKeyboardTimeout();
 
     const input = TextInput.State.currentlyFocusedField();
@@ -49,6 +51,7 @@ export default class KeyboardManager extends React.Component<Props> {
     if (!this.props.enabled) {
       return;
     }
+
     this.clearKeyboardTimeout();
 
     Keyboard.dismiss();
@@ -61,6 +64,7 @@ export default class KeyboardManager extends React.Component<Props> {
     if (!this.props.enabled) {
       return;
     }
+
     this.clearKeyboardTimeout();
 
     // The page didn't change, we should restore the focus of text input

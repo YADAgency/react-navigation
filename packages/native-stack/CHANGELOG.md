@@ -3,6 +3,194 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [5.0.0-alpha.35](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.34...@react-navigation/native-stack@5.0.0-alpha.35) (2020-02-04)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.34](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.33...@react-navigation/native-stack@5.0.0-alpha.34) (2020-02-04)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.33](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.32...@react-navigation/native-stack@5.0.0-alpha.33) (2020-02-03)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.32](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.29...@react-navigation/native-stack@5.0.0-alpha.32) (2020-02-02)
+
+
+### Bug Fixes
+
+* add licenses ([0c159db](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/0c159db4c9bc85e83b5cfe6819ab2562669a4d8f))
+* screens integration on Android ([#294](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/issues/294)) ([9bfb295](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/9bfb29562020c61b4d5c9bee278bcb1c7bdb8b67))
+* update screens for native stack ([5411816](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/54118161885738a6d20b062c7e6679f3bace8424))
+
+
+
+
+
+# [5.0.0-alpha.30](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.29...@react-navigation/native-stack@5.0.0-alpha.30) (2020-02-02)
+
+
+### Bug Fixes
+
+* add licenses ([0c159db](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/0c159db4c9bc85e83b5cfe6819ab2562669a4d8f))
+* screens integration on Android ([#294](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/issues/294)) ([9bfb295](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/9bfb29562020c61b4d5c9bee278bcb1c7bdb8b67))
+* update screens for native stack ([5411816](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/54118161885738a6d20b062c7e6679f3bace8424))
+
+
+
+
+
+# [5.0.0-alpha.29](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.28...@react-navigation/native-stack@5.0.0-alpha.29) (2020-01-24)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.28](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.27...@react-navigation/native-stack@5.0.0-alpha.28) (2020-01-23)
+
+
+### Bug Fixes
+
+* fix types for native stack ([1da4a64](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/1da4a6437f4607c1d4547d26dd5068615631982e))
+
+
+### Features
+
+* emit appear and dismiss events for native stack ([f1df4a0](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/f1df4a080877b3642e748a41a5ffc2da8c449a8c))
+* let the navigator specify if default can be prevented ([da67e13](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/da67e134d2157201360427d3c10da24f24cae7aa))
+
+
+
+
+
+# [5.0.0-alpha.27](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.26...@react-navigation/native-stack@5.0.0-alpha.27) (2020-01-14)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.26](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.25...@react-navigation/native-stack@5.0.0-alpha.26) (2020-01-13)
+
+
+### Bug Fixes
+
+* make sure paths aren't aliased when building definitions ([65a5dac](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/commit/65a5dac2bf887f4ba081ab15bd4c9870bb15697f)), closes [#265](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/issues/265)
+
+
+
+
+
+# [5.0.0-alpha.25](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.24...@react-navigation/native-stack@5.0.0-alpha.25) (2020-01-13)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.24](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.22...@react-navigation/native-stack@5.0.0-alpha.24) (2020-01-09)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.23](https://github.com/react-navigation/navigation-ex/tree/master/packages/native-stack/compare/@react-navigation/native-stack@5.0.0-alpha.22...@react-navigation/native-stack@5.0.0-alpha.23) (2020-01-09)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.22](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.21...@react-navigation/native-stack@5.0.0-alpha.22) (2020-01-05)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.21](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.20...@react-navigation/native-stack@5.0.0-alpha.21) (2020-01-03)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.20](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.19...@react-navigation/native-stack@5.0.0-alpha.20) (2020-01-01)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.19](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.18...@react-navigation/native-stack@5.0.0-alpha.19) (2019-12-19)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.18](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.17...@react-navigation/native-stack@5.0.0-alpha.18) (2019-12-16)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.17](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.16...@react-navigation/native-stack@5.0.0-alpha.17) (2019-12-14)
+
+
+### Features
+
+* add custom theme support ([#211](https://github.com/react-navigation/navigation-ex/issues/211)) ([00fc616](https://github.com/react-navigation/navigation-ex/commit/00fc616de0572bade8aa85052cdc8290360b1d7f))
+
+
+
+
+
+# [5.0.0-alpha.16](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.15...@react-navigation/native-stack@5.0.0-alpha.16) (2019-12-11)
+
+**Note:** Version bump only for package @react-navigation/native-stack
+
+
+
+
+
+# [5.0.0-alpha.15](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.14...@react-navigation/native-stack@5.0.0-alpha.15) (2019-12-07)
+
+
+### Features
+
+* export underlying views used to build navigators ([#191](https://github.com/react-navigation/navigation-ex/issues/191)) ([d618ab3](https://github.com/react-navigation/navigation-ex/commit/d618ab382ecc5eccbcd5faa89e76f9ed2d75f405))
+
+
+
+
+
 # [5.0.0-alpha.14](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/native-stack@5.0.0-alpha.13...@react-navigation/native-stack@5.0.0-alpha.14) (2019-11-20)
 
 **Note:** Version bump only for package @react-navigation/native-stack

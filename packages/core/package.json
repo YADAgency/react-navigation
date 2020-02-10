@@ -1,22 +1,22 @@
 {
   "name": "@react-navigation/core",
   "description": "Core utilities for building navigators",
+  "version": "5.0.0",
   "keywords": [
     "react",
     "react-native",
     "react-navigation"
   ],
-  "version": "5.0.0-alpha.25",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/react-navigation/navigation-ex.git",
-    "directory": "packages/core"
+  "repository": "https://github.com/react-navigation/react-navigation/tree/master/packages/core",
+  "bugs": {
+    "url": "https://github.com/react-navigation/react-navigation/issues"
   },
+  "homepage": "https://reactnavigation.org",
   "main": "lib/commonjs/index.js",
   "react-native": "src/index.tsx",
   "module": "lib/module/index.js",
-  "types": "lib/typescript/index.d.ts",
+  "types": "lib/typescript/src/index.d.ts",
   "files": [
     "src",
     "lib"
@@ -31,22 +31,25 @@
   "dependencies": {
     "escape-string-regexp": "^2.0.0",
     "query-string": "^6.9.0",
+    "react-is": "^16.12.0",
     "shortid": "^2.2.15",
     "use-subscription": "^1.3.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@react-native-community/bob": "^0.7.0",
-    "@types/react": "^16.9.11",
+    "@babel/core": "^7.7.7",
+    "@react-native-community/bob": "^0.8.0",
+    "@types/react": "^16.9.17",
+    "@types/react-is": "^16.7.1",
     "@types/shortid": "^0.0.29",
+    "@types/use-subscription": "^1.0.0",
     "del-cli": "^3.0.0",
-    "react": "~16.8.3",
-    "react-native-testing-library": "^1.9.1",
-    "react-test-renderer": "~16.8.3",
-    "typescript": "^3.7.2"
+    "react": "~16.9.0",
+    "react-native-testing-library": "^1.12.0",
+    "react-test-renderer": "~16.12.0",
+    "typescript": "^3.7.4"
   },
   "peerDependencies": {
-    "react": "~16.8.3"
+    "react": "~16.9.0"
   },
   "@react-native-community/bob": {
     "source": "src",
@@ -54,7 +57,12 @@
     "targets": [
       "commonjs",
       "module",
-      "typescript"
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
     ]
   }
 }

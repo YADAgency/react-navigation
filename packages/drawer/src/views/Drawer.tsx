@@ -9,6 +9,7 @@ import {
   StatusBar,
   StyleProp,
   View,
+  InteractionManager,
 } from 'react-native';
 import {
   PanGestureHandler,
@@ -16,6 +17,7 @@ import {
   State,
 } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
+import Overlay from './Overlay';
 
 const {
   Clock,
@@ -24,7 +26,6 @@ const {
   clockRunning,
   startClock,
   stopClock,
-  interpolate,
   spring,
   abs,
   add,
@@ -50,8 +51,6 @@ const TRUE = 1;
 const FALSE = 0;
 const NOOP = 0;
 const UNSET = -1;
-
-const PROGRESS_EPSILON = 0.05;
 
 const DIRECTION_LEFT = 1;
 const DIRECTION_RIGHT = -1;
@@ -96,11 +95,30 @@ type Props = {
   gestureHandlerProps?: React.ComponentProps<typeof PanGestureHandler>;
 };
 
+/**
+ * Disables the pan gesture by default on Apple devices in the browser.
+ * https://stackoverflow.com/a/9039885
+ */
+function shouldEnableGesture(): boolean {
+  if (
+    Platform.OS === 'web' &&
+    typeof navigator !== 'undefined' &&
+    typeof window !== 'undefined'
+  ) {
+    const isWebAppleDevice =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    return !isWebAppleDevice;
+  }
+
+  return true;
+}
+
 export default class DrawerView extends React.PureComponent<Props> {
   static defaultProps = {
     drawerPostion: I18nManager.isRTL ? 'left' : 'right',
     drawerType: 'front',
-    gestureEnabled: true,
+    gestureEnabled: shouldEnableGesture(),
     swipeEdgeWidth: 32,
     swipeVelocityThreshold: 500,
     keyboardDismissMode: 'on-drag',
@@ -162,9 +180,24 @@ export default class DrawerView extends React.PureComponent<Props> {
 
   componentWillUnmount() {
     this.toggleStatusBar(false);
+    this.handleEndInteraction();
   }
 
+  private handleEndInteraction = () => {
+    if (this.interactionHandle !== undefined) {
+      InteractionManager.clearInteractionHandle(this.interactionHandle);
+      this.interactionHandle = undefined;
+    }
+  };
+
+  private handleStartInteraction = () => {
+    if (this.interactionHandle === undefined) {
+      this.interactionHandle = InteractionManager.createInteractionHandle();
+    }
+  };
+
   private clock = new Clock();
+  private interactionHandle: number | undefined;
 
   private isDrawerTypeFront = new Value<Binary>(
     this.props.drawerType === 'front' ? TRUE : FALSE
@@ -278,6 +311,7 @@ export default class DrawerView extends React.PureComponent<Props> {
         set(state.velocity, this.velocityX),
         set(this.isOpen, isOpen),
         startClock(this.clock),
+        call([], this.handleStartInteraction),
         set(this.manuallyTriggerSpring, FALSE),
       ]),
       spring(this.clock, state, { ...SPRING_CONFIG, toValue }),
@@ -289,8 +323,9 @@ export default class DrawerView extends React.PureComponent<Props> {
         set(this.offsetX, 0),
         // When the animation finishes, stop the clock
         stopClock(this.clock),
-        call([this.isOpen], ([value]: ReadonlyArray<Binary>) => {
+        call([this.isOpen], ([value]: readonly Binary[]) => {
           const open = Boolean(value);
+          this.handleEndInteraction();
 
           if (open !== this.props.open) {
             // Sync drawer's state after animation finished
@@ -305,7 +340,7 @@ export default class DrawerView extends React.PureComponent<Props> {
   private dragX = block([
     onChange(
       this.isOpen,
-      call([this.isOpen], ([value]: ReadonlyArray<Binary>) => {
+      call([this.isOpen], ([value]: readonly Binary[]) => {
         const open = Boolean(value);
 
         this.currentOpenValue = open;
@@ -345,7 +380,7 @@ export default class DrawerView extends React.PureComponent<Props> {
       // Listen to updates for this value only when it changes
       // Without `onChange`, this will fire even if the value didn't change
       // We don't want to call the listeners if the value didn't change
-      call([this.isSwiping], ([value]: ReadonlyArray<Binary>) => {
+      call([this.isSwiping], ([value]: readonly Binary[]) => {
         const { keyboardDismissMode } = this.props;
 
         if (value === TRUE) {
@@ -358,6 +393,13 @@ export default class DrawerView extends React.PureComponent<Props> {
           this.toggleStatusBar(this.currentOpenValue);
         }
       })
+    ),
+    onChange(
+      this.gestureState,
+      cond(
+        eq(this.gestureState, State.ACTIVE),
+        call([], this.handleStartInteraction)
+      )
     ),
     cond(
       eq(this.gestureState, State.ACTIVE),
@@ -502,21 +544,29 @@ export default class DrawerView extends React.PureComponent<Props> {
       gestureHandlerProps,
     } = this.props;
 
-    const right = drawerPosition === 'right';
+    const isRight = drawerPosition === 'right';
 
     const contentTranslateX = drawerType === 'front' ? 0 : this.translateX;
     const drawerTranslateX =
       drawerType === 'back'
         ? I18nManager.isRTL
-          ? multiply(this.drawerWidth, DIRECTION_RIGHT)
-          : this.drawerWidth
+          ? multiply(
+              sub(this.containerWidth, this.drawerWidth),
+              isRight ? 1 : -1
+            )
+          : 0
         : this.translateX;
 
-    const offset = I18nManager.isRTL ? '100%' : multiply(this.drawerWidth, -1);
+    const offset =
+      drawerType === 'back'
+        ? 0
+        : I18nManager.isRTL
+        ? '100%'
+        : multiply(this.drawerWidth, -1);
 
     // FIXME: Currently hitSlop is broken when on Android when drawer is on right
     // https://github.com/kmagiera/react-native-gesture-handler/issues/569
-    const hitSlop = right
+    const hitSlop = isRight
       ? // Extend hitSlop to the side of the screen when drawer is closed
         // This lets the user drag the drawer from the side of the screen
         { right: 0, width: open ? undefined : swipeEdgeWidth }
@@ -555,26 +605,7 @@ export default class DrawerView extends React.PureComponent<Props> {
               {renderHeader()}
             </View>
             <TapGestureHandler onHandlerStateChange={this.handleTapStateChange}>
-              <Animated.View
-                style={[
-                  styles.overlay,
-                  {
-                    opacity: interpolate(this.progress, {
-                      inputRange: [PROGRESS_EPSILON, 1],
-                      outputRange: [0, 1],
-                    }),
-                    // We don't want the user to be able to press through the overlay when drawer is open
-                    // One approach is to adjust the pointerEvents based on the progress
-                    // But we can also send the overlay behind the screen, which works, and is much less code
-                    zIndex: cond(
-                      greaterThan(this.progress, PROGRESS_EPSILON),
-                      0,
-                      -1
-                    ),
-                  },
-                  overlayStyle,
-                ]}
-              />
+              <Overlay progress={this.progress} style={overlayStyle} />
             </TapGestureHandler>
           </Animated.View>
           <Animated.Code
@@ -593,7 +624,7 @@ export default class DrawerView extends React.PureComponent<Props> {
             onLayout={this.handleDrawerLayout}
             style={[
               styles.container,
-              right ? { right: offset } : { left: offset },
+              isRight ? { right: offset } : { left: offset },
               {
                 transform: [{ translateX: drawerTranslateX }],
                 opacity: this.drawerOpacity,
@@ -618,10 +649,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '80%',
     maxWidth: '100%',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   content: {
     flex: 1,

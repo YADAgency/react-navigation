@@ -3,7 +3,7 @@ import {
   createNavigatorFactory,
   useNavigationBuilder,
   DefaultNavigatorOptions,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import {
   DrawerNavigationState,
   DrawerRouterOptions,
@@ -19,10 +19,11 @@ import {
 
 type Props = DefaultNavigatorOptions<DrawerNavigationOptions> &
   DrawerRouterOptions &
-  Partial<DrawerNavigationConfig>;
+  DrawerNavigationConfig;
 
 function DrawerNavigator({
   initialRouteName,
+  backBehavior,
   children,
   screenOptions,
   ...rest
@@ -34,6 +35,7 @@ function DrawerNavigator({
     DrawerNavigationEventMap
   >(DrawerRouter, {
     initialRouteName,
+    backBehavior,
     children,
     screenOptions,
   });

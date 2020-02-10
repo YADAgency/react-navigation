@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { render } from 'react-native-testing-library';
 import useNavigationBuilder from '../useNavigationBuilder';
-import NavigationContainer from '../NavigationContainer';
+import BaseNavigationContainer from '../BaseNavigationContainer';
 import Screen from '../Screen';
 import MockRouter, {
   MockActions,
@@ -58,7 +58,7 @@ it("lets parent handle the action if child didn't", () => {
   const onStateChange = jest.fn();
 
   render(
-    <NavigationContainer onStateChange={onStateChange}>
+    <BaseNavigationContainer onStateChange={onStateChange}>
       <ParentNavigator initialRouteName="baz">
         <Screen name="foo">{() => null}</Screen>
         <Screen name="bar">{() => null}</Screen>
@@ -70,7 +70,7 @@ it("lets parent handle the action if child didn't", () => {
           )}
         </Screen>
       </ParentNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   expect(onStateChange).toBeCalledTimes(1);
@@ -171,7 +171,7 @@ it("lets children handle the action if parent didn't", () => {
   };
 
   const element = (
-    <NavigationContainer
+    <BaseNavigationContainer
       initialState={initialState}
       onStateChange={onStateChange}
     >
@@ -181,13 +181,13 @@ it("lets children handle the action if parent didn't", () => {
         <Screen name="baz">
           {() => (
             <ChildNavigator>
-              <Screen name="qux" component={() => null} />
-              <Screen name="lex" component={() => null} />
+              <Screen name="qux">{() => null}</Screen>
+              <Screen name="lex">{() => null}</Screen>
             </ChildNavigator>
           )}
         </Screen>
       </ParentNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   render(element).update(element);
@@ -284,20 +284,20 @@ it("action doesn't bubble if target is specified", () => {
   const onStateChange = jest.fn();
 
   const element = (
-    <NavigationContainer onStateChange={onStateChange}>
+    <BaseNavigationContainer onStateChange={onStateChange}>
       <ParentNavigator>
         <Screen name="foo">{() => null}</Screen>
         <Screen name="bar" component={TestScreen} />
         <Screen name="baz">
           {() => (
             <ChildNavigator>
-              <Screen name="qux" component={() => null} />
-              <Screen name="lex" component={() => null} />
+              <Screen name="qux">{() => null}</Screen>
+              <Screen name="lex">{() => null}</Screen>
             </ChildNavigator>
           )}
         </Screen>
       </ParentNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   render(element).update(element);
@@ -305,8 +305,7 @@ it("action doesn't bubble if target is specified", () => {
   expect(onStateChange).not.toBeCalled();
 });
 
-// eslint-disable-next-line jest/expect-expect
-it("doesn't crash if no navigator handled the action", () => {
+it('logs error if no navigator handled the action', () => {
   const TestRouter = MockRouter;
 
   const TestNavigator = (props: any) => {
@@ -350,21 +349,29 @@ it("doesn't crash if no navigator handled the action", () => {
   };
 
   const element = (
-    <NavigationContainer initialState={initialState}>
+    <BaseNavigationContainer initialState={initialState}>
       <TestNavigator>
         <Screen name="foo">{() => null}</Screen>
         <Screen name="bar" component={TestScreen} />
         <Screen name="baz">
           {() => (
             <TestNavigator>
-              <Screen name="qux" component={() => null} />
-              <Screen name="lex" component={() => null} />
+              <Screen name="qux">{() => null}</Screen>
+              <Screen name="lex">{() => null}</Screen>
             </TestNavigator>
           )}
         </Screen>
       </TestNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
+  const spy = jest.spyOn(console, 'error').mockImplementation();
+
   render(element).update(element);
+
+  expect(spy.mock.calls[0][0]).toMatch(
+    "The action 'UNKNOWN' with payload 'undefined' was not handled by any navigator."
+  );
+
+  spy.mockRestore();
 });

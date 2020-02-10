@@ -1,4 +1,4 @@
-import { CommonActions } from '@react-navigation/core';
+import { CommonActions } from '@react-navigation/native';
 import { StackActions, StackActionType } from '@react-navigation/routers';
 
 export function reset(): CommonActions.Action {
@@ -19,7 +19,7 @@ export function replace({
   key?: string;
   newKey?: string;
   action?: never;
-}): CommonActions.Action {
+}): StackActionType {
   if (action !== undefined) {
     throw new Error(
       'Sub-actions are not supported for `replace`. Remove the `action` key from the options.'

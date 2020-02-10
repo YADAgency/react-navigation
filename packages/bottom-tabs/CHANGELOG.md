@@ -3,6 +3,214 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [5.0.0-alpha.45](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.44...@react-navigation/bottom-tabs@5.0.0-alpha.45) (2020-02-04)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.44](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.43...@react-navigation/bottom-tabs@5.0.0-alpha.44) (2020-02-04)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.43](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.42...@react-navigation/bottom-tabs@5.0.0-alpha.43) (2020-02-03)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.42](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.39...@react-navigation/bottom-tabs@5.0.0-alpha.42) (2020-02-02)
+
+
+### Bug Fixes
+
+* add licenses ([0c159db](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/commit/0c159db4c9bc85e83b5cfe6819ab2562669a4d8f))
+
+
+
+
+
+# [5.0.0-alpha.40](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.39...@react-navigation/bottom-tabs@5.0.0-alpha.40) (2020-02-02)
+
+
+### Bug Fixes
+
+* add licenses ([0c159db](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/commit/0c159db4c9bc85e83b5cfe6819ab2562669a4d8f))
+
+
+
+
+
+# [5.0.0-alpha.39](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.38...@react-navigation/bottom-tabs@5.0.0-alpha.39) (2020-01-24)
+
+
+### Bug Fixes
+
+* use layout instead of dimensions for determining tab bar layout ([f1fe951](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/commit/f1fe951cf9d602e1b6d4932e3c6c77bbeaaec5c0))
+
+
+
+
+
+# [5.0.0-alpha.38](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.37...@react-navigation/bottom-tabs@5.0.0-alpha.38) (2020-01-23)
+
+
+### Bug Fixes
+
+* don't use native driver on web ([0a982ee](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/commit/0a982ee6984b24c0ba053a30223e255f3835e050))
+
+
+### Features
+
+* let the navigator specify if default can be prevented ([da67e13](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/commit/da67e134d2157201360427d3c10da24f24cae7aa))
+
+
+
+
+
+# [5.0.0-alpha.37](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.36...@react-navigation/bottom-tabs@5.0.0-alpha.37) (2020-01-14)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.36](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.35...@react-navigation/bottom-tabs@5.0.0-alpha.36) (2020-01-13)
+
+
+### Bug Fixes
+
+* make sure paths aren't aliased when building definitions ([65a5dac](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/commit/65a5dac2bf887f4ba081ab15bd4c9870bb15697f)), closes [#265](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/issues/265)
+
+
+
+
+
+# [5.0.0-alpha.35](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.34...@react-navigation/bottom-tabs@5.0.0-alpha.35) (2020-01-13)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.34](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.32...@react-navigation/bottom-tabs@5.0.0-alpha.34) (2020-01-09)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.33](https://github.com/react-navigation/navigation-ex/tree/master/packages/bottom-tabs/compare/@react-navigation/bottom-tabs@5.0.0-alpha.32...@react-navigation/bottom-tabs@5.0.0-alpha.33) (2020-01-09)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.32](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.31...@react-navigation/bottom-tabs@5.0.0-alpha.32) (2020-01-05)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.31](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.30...@react-navigation/bottom-tabs@5.0.0-alpha.31) (2020-01-03)
+
+
+### Bug Fixes
+
+* provide initial values for safe area to prevent blank screen ([#238](https://github.com/react-navigation/navigation-ex/issues/238)) ([77b7570](https://github.com/react-navigation/navigation-ex/commit/77b757091c0451e20bca01138629669c7da544a8))
+
+
+
+
+
+# [5.0.0-alpha.30](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.29...@react-navigation/bottom-tabs@5.0.0-alpha.30) (2020-01-03)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.29](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.28...@react-navigation/bottom-tabs@5.0.0-alpha.29) (2020-01-01)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.28](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.27...@react-navigation/bottom-tabs@5.0.0-alpha.28) (2019-12-19)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.27](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.26...@react-navigation/bottom-tabs@5.0.0-alpha.27) (2019-12-16)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.26](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.25...@react-navigation/bottom-tabs@5.0.0-alpha.26) (2019-12-14)
+
+
+### Features
+
+* add custom theme support ([#211](https://github.com/react-navigation/navigation-ex/issues/211)) ([00fc616](https://github.com/react-navigation/navigation-ex/commit/00fc616de0572bade8aa85052cdc8290360b1d7f))
+
+
+
+
+
+# [5.0.0-alpha.25](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.24...@react-navigation/bottom-tabs@5.0.0-alpha.25) (2019-12-11)
+
+**Note:** Version bump only for package @react-navigation/bottom-tabs
+
+
+
+
+
+# [5.0.0-alpha.24](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.23...@react-navigation/bottom-tabs@5.0.0-alpha.24) (2019-12-10)
+
+
+### Bug Fixes
+
+* fix accessibility label in bottom tab bar ([448fa64](https://github.com/react-navigation/navigation-ex/commit/448fa642edcc282cd18ac034fd5baa6529a6c0f8))
+
+
+
+
+
+# [5.0.0-alpha.23](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.22...@react-navigation/bottom-tabs@5.0.0-alpha.23) (2019-12-07)
+
+
+### Features
+
+* export underlying views used to build navigators ([#191](https://github.com/react-navigation/navigation-ex/issues/191)) ([d618ab3](https://github.com/react-navigation/navigation-ex/commit/d618ab382ecc5eccbcd5faa89e76f9ed2d75f405))
+
+
+
+
+
 # [5.0.0-alpha.22](https://github.com/react-navigation/navigation-ex/compare/@react-navigation/bottom-tabs@5.0.0-alpha.21...@react-navigation/bottom-tabs@5.0.0-alpha.22) (2019-11-17)
 
 

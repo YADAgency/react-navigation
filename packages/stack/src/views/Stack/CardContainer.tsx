@@ -1,17 +1,10 @@
 import * as React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import Animated from 'react-native-reanimated';
-import { StackNavigationState } from '@react-navigation/routers';
-import { Route } from '@react-navigation/core';
+import { Animated, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { Route, useTheme } from '@react-navigation/native';
 import { Props as HeaderContainerProps } from '../Header/HeaderContainer';
 import Card from './Card';
-import {
-  StackNavigationHelpers,
-  Scene,
-  Layout,
-  StackHeaderMode,
-  TransitionPreset,
-} from '../../types';
+import HeaderHeightContext from '../../utils/HeaderHeightContext';
+import { Scene, Layout, StackHeaderMode, TransitionPreset } from '../../types';
 
 type Props = TransitionPreset & {
   index: number;
@@ -19,27 +12,24 @@ type Props = TransitionPreset & {
   focused: boolean;
   closing: boolean;
   layout: Layout;
-  current: Animated.Value<number>;
+  gesture: Animated.Value;
   previousScene?: Scene<Route<string>>;
   scene: Scene<Route<string>>;
-  state: StackNavigationState;
-  navigation: StackNavigationHelpers;
   safeAreaInsetTop: number;
   safeAreaInsetRight: number;
   safeAreaInsetBottom: number;
   safeAreaInsetLeft: number;
-  cardTransparent?: boolean;
   cardOverlayEnabled?: boolean;
   cardShadowEnabled?: boolean;
   cardStyle?: StyleProp<ViewStyle>;
   getPreviousRoute: (props: {
     route: Route<string>;
   }) => Route<string> | undefined;
+  getFocusedRoute: () => Route<string>;
   renderHeader: (props: HeaderContainerProps) => React.ReactNode;
   renderScene: (props: { route: Route<string> }) => React.ReactNode;
   onOpenRoute: (props: { route: Route<string> }) => void;
   onCloseRoute: (props: { route: Route<string> }) => void;
-  onGoBack: (props: { route: Route<string> }) => void;
   onTransitionStart?: (
     props: { route: Route<string> },
     closing: boolean
@@ -57,141 +47,167 @@ type Props = TransitionPreset & {
   headerMode: StackHeaderMode;
   headerShown?: boolean;
   headerTransparent?: boolean;
-  floatingHeaderHeight: number;
+  headerHeight: number;
+  onHeaderHeightChange: (props: {
+    route: Route<string>;
+    height: number;
+  }) => void;
 };
 
-export default class CardContainer extends React.PureComponent<Props> {
-  private handleOpen = () => {
-    const { scene, onTransitionEnd, onOpenRoute } = this.props;
+const EPSILON = 0.1;
 
-    onTransitionEnd && onTransitionEnd({ route: scene.route }, false);
+function CardContainer({
+  active,
+  cardOverlayEnabled,
+  cardShadowEnabled,
+  cardStyle,
+  cardStyleInterpolator,
+  closing,
+  gesture,
+  focused,
+  gestureDirection,
+  gestureEnabled,
+  gestureResponseDistance,
+  gestureVelocityImpact,
+  getPreviousRoute,
+  getFocusedRoute,
+  headerMode,
+  headerShown,
+  headerStyleInterpolator,
+  headerTransparent,
+  headerHeight,
+  onHeaderHeightChange,
+  index,
+  layout,
+  onCloseRoute,
+  onOpenRoute,
+  onPageChangeCancel,
+  onPageChangeConfirm,
+  onPageChangeStart,
+  onTransitionEnd,
+  onTransitionStart,
+  previousScene,
+  renderHeader,
+  renderScene,
+  safeAreaInsetBottom,
+  safeAreaInsetLeft,
+  safeAreaInsetRight,
+  safeAreaInsetTop,
+  scene,
+  transitionSpec,
+}: Props) {
+  React.useEffect(() => {
+    onPageChangeConfirm?.();
+  }, [active, onPageChangeConfirm]);
+
+  const handleOpen = () => {
+    onTransitionEnd?.({ route: scene.route }, false);
     onOpenRoute({ route: scene.route });
   };
 
-  private handleClose = () => {
-    const { scene, onTransitionEnd, onCloseRoute } = this.props;
-
-    onTransitionEnd && onTransitionEnd({ route: scene.route }, true);
+  const handleClose = () => {
+    onTransitionEnd?.({ route: scene.route }, true);
     onCloseRoute({ route: scene.route });
   };
 
-  private handleTransitionStart = ({ closing }: { closing: boolean }) => {
-    const {
-      scene,
-      onTransitionStart,
-      onPageChangeConfirm,
-      onPageChangeCancel,
-      onGoBack,
-    } = this.props;
-
-    if (closing) {
-      onPageChangeConfirm && onPageChangeConfirm();
+  const handleTransitionStart = ({ closing }: { closing: boolean }) => {
+    if (active && closing) {
+      onPageChangeConfirm?.();
     } else {
-      onPageChangeCancel && onPageChangeCancel();
+      onPageChangeCancel?.();
     }
 
-    onTransitionStart && onTransitionStart({ route: scene.route }, closing);
-    closing && onGoBack({ route: scene.route });
+    onTransitionStart?.({ route: scene.route }, closing);
   };
 
-  render() {
-    const {
-      index,
-      layout,
-      active,
-      focused,
-      closing,
-      current,
-      state,
-      scene,
-      previousScene,
-      safeAreaInsetTop,
-      safeAreaInsetRight,
-      safeAreaInsetBottom,
-      safeAreaInsetLeft,
-      cardTransparent,
-      cardOverlayEnabled,
-      cardShadowEnabled,
-      cardStyle,
-      onPageChangeStart,
-      onPageChangeCancel,
-      gestureEnabled,
-      gestureResponseDistance,
-      gestureVelocityImpact,
-      floatingHeaderHeight,
-      headerShown,
-      getPreviousRoute,
-      headerMode,
-      headerTransparent,
-      renderHeader,
-      renderScene,
-      gestureDirection,
-      transitionSpec,
-      cardStyleInterpolator,
-      headerStyleInterpolator,
-    } = this.props;
+  const insets = {
+    top: safeAreaInsetTop,
+    right: safeAreaInsetRight,
+    bottom: safeAreaInsetBottom,
+    left: safeAreaInsetLeft,
+  };
 
-    const insets = {
-      top: safeAreaInsetTop,
-      right: safeAreaInsetRight,
-      bottom: safeAreaInsetBottom,
-      left: safeAreaInsetLeft,
-    };
+  const { colors } = useTheme();
 
-    return (
-      <Card
-        index={index}
-        active={active}
-        transparent={cardTransparent}
-        gestureDirection={gestureDirection}
-        layout={layout}
-        insets={insets}
-        current={current}
-        next={scene.progress.next}
-        closing={closing}
-        onOpen={this.handleOpen}
-        onClose={this.handleClose}
-        overlayEnabled={cardOverlayEnabled}
-        shadowEnabled={cardShadowEnabled}
-        onTransitionStart={this.handleTransitionStart}
-        onGestureBegin={onPageChangeStart}
-        onGestureCanceled={onPageChangeCancel}
-        gestureEnabled={gestureEnabled}
-        gestureResponseDistance={gestureResponseDistance}
-        gestureVelocityImpact={gestureVelocityImpact}
-        transitionSpec={transitionSpec}
-        styleInterpolator={cardStyleInterpolator}
-        accessibilityElementsHidden={!focused}
-        importantForAccessibility={focused ? 'auto' : 'no-hide-descendants'}
-        pointerEvents="box-none"
-        containerStyle={
-          headerMode === 'float' && !headerTransparent && headerShown !== false
-            ? { marginTop: floatingHeaderHeight }
-            : null
-        }
-        contentStyle={cardStyle}
-        style={StyleSheet.absoluteFill}
-      >
-        <View style={styles.container}>
-          <View style={styles.scene}>
-            {renderScene({ route: scene.route })}
-          </View>
-          {headerMode === 'screen'
-            ? renderHeader({
-                mode: 'screen',
-                layout,
-                insets,
-                scenes: [previousScene, scene],
-                state,
-                getPreviousRoute,
-                styleInterpolator: headerStyleInterpolator,
-              })
-            : null}
-        </View>
-      </Card>
+  const [pointerEvents, setPointerEvents] = React.useState<'box-none' | 'none'>(
+    'box-none'
+  );
+
+  React.useEffect(() => {
+    // `addListener` may not exist on web and older versions of React Native
+    // @ts-ignore
+    const listener = scene.progress.next?.addListener?.(
+      ({ value }: { value: number }) => {
+        setPointerEvents(value <= EPSILON ? 'box-none' : 'none');
+      }
     );
-  }
+
+    return () => {
+      if (listener) {
+        // @ts-ignore
+        scene.progress.next?.removeListener?.(listener);
+      }
+    };
+  }, [pointerEvents, scene.progress.next]);
+
+  return (
+    <Card
+      index={index}
+      gestureDirection={gestureDirection}
+      layout={layout}
+      insets={insets}
+      gesture={gesture}
+      current={scene.progress.current}
+      next={scene.progress.next}
+      closing={closing}
+      onOpen={handleOpen}
+      onClose={handleClose}
+      overlayEnabled={cardOverlayEnabled}
+      shadowEnabled={cardShadowEnabled}
+      onTransitionStart={handleTransitionStart}
+      onGestureBegin={onPageChangeStart}
+      onGestureCanceled={onPageChangeCancel}
+      gestureEnabled={gestureEnabled}
+      gestureResponseDistance={gestureResponseDistance}
+      gestureVelocityImpact={gestureVelocityImpact}
+      transitionSpec={transitionSpec}
+      styleInterpolator={cardStyleInterpolator}
+      accessibilityElementsHidden={!focused}
+      importantForAccessibility={focused ? 'auto' : 'no-hide-descendants'}
+      pointerEvents={active ? 'box-none' : pointerEvents}
+      containerStyle={
+        headerMode === 'float' && !headerTransparent && headerShown !== false
+          ? { marginTop: headerHeight }
+          : null
+      }
+      contentStyle={[{ backgroundColor: colors.background }, cardStyle]}
+      style={StyleSheet.absoluteFill}
+    >
+      <View style={styles.container}>
+        <View style={styles.scene}>
+          <HeaderHeightContext.Provider value={headerHeight}>
+            {renderScene({ route: scene.route })}
+          </HeaderHeightContext.Provider>
+        </View>
+        {headerMode === 'screen'
+          ? renderHeader({
+              mode: 'screen',
+              layout,
+              insets,
+              scenes: [previousScene, scene],
+              getPreviousRoute,
+              getFocusedRoute,
+              gestureDirection,
+              styleInterpolator: headerStyleInterpolator,
+              onContentHeightChange: onHeaderHeightChange,
+            })
+          : null}
+      </View>
+    </Card>
+  );
 }
+
+export default React.memo(CardContainer);
 
 const styles = StyleSheet.create({
   container: {

@@ -4,33 +4,39 @@ import {
   NavigationContext,
   Route,
   ParamListBase,
-} from '@react-navigation/core';
-import { StackNavigationState } from '@react-navigation/routers';
+} from '@react-navigation/native';
 import { EdgeInsets } from 'react-native-safe-area-context';
 
 import Header from './Header';
-import { forStatic } from '../../TransitionConfigs/HeaderStyleInterpolators';
+import {
+  forSlideLeft,
+  forSlideUp,
+  forNoAnimation,
+  forSlideRight,
+} from '../../TransitionConfigs/HeaderStyleInterpolators';
 import {
   Layout,
   Scene,
   StackHeaderStyleInterpolator,
   StackNavigationProp,
+  GestureDirection,
 } from '../../types';
 
 export type Props = {
   mode: 'float' | 'screen';
   layout: Layout;
   insets: EdgeInsets;
-  scenes: Array<Scene<Route<string>> | undefined>;
-  state: StackNavigationState;
+  scenes: (Scene<Route<string>> | undefined)[];
   getPreviousRoute: (props: {
     route: Route<string>;
   }) => Route<string> | undefined;
+  getFocusedRoute: () => Route<string>;
   onContentHeightChange?: (props: {
     route: Route<string>;
     height: number;
   }) => void;
   styleInterpolator: StackHeaderStyleInterpolator;
+  gestureDirection: GestureDirection;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -39,17 +45,18 @@ export default function HeaderContainer({
   scenes,
   layout,
   insets,
-  state,
+  getFocusedRoute,
   getPreviousRoute,
   onContentHeightChange,
+  gestureDirection,
   styleInterpolator,
   style,
 }: Props) {
-  const focusedRoute = state.routes[state.index];
+  const focusedRoute = getFocusedRoute();
 
   return (
     <View pointerEvents="box-none" style={style}>
-      {scenes.map((scene, i, self) => {
+      {scenes.slice(-3).map((scene, i, self) => {
         if ((mode === 'screen' && i !== self.length - 1) || !scene) {
           return null;
         }
@@ -78,14 +85,12 @@ export default function HeaderContainer({
         const previousScene = self[i - 1];
         const nextScene = self[i + 1];
         const isHeaderStatic =
-          mode === 'float'
-            ? (previousScene &&
-                previousScene.descriptor.options.headerShown === false &&
-                // We still need to animate when coming back from next scene
-                // A hacky way to check this is if the next scene exists
-                !nextScene) ||
-              (nextScene && nextScene.descriptor.options.headerShown === false)
-            : false;
+          (previousScene &&
+            previousScene.descriptor.options.headerShown === false &&
+            // We still need to animate when coming back from next scene
+            // A hacky way to check this is if the next scene exists
+            !nextScene) ||
+          (nextScene && nextScene.descriptor.options.headerShown === false);
 
         const props = {
           mode,
@@ -96,7 +101,17 @@ export default function HeaderContainer({
           navigation: scene.descriptor.navigation as StackNavigationProp<
             ParamListBase
           >,
-          styleInterpolator: isHeaderStatic ? forStatic : styleInterpolator,
+          styleInterpolator:
+            mode === 'float'
+              ? isHeaderStatic
+                ? gestureDirection === 'vertical' ||
+                  gestureDirection === 'vertical-inverted'
+                  ? forSlideUp
+                  : gestureDirection === 'horizontal-inverted'
+                  ? forSlideRight
+                  : forSlideLeft
+                : styleInterpolator
+              : forNoAnimation,
         };
 
         return (

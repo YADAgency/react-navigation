@@ -4,14 +4,14 @@ import {
   Descriptor,
   NavigationProp,
   NavigationHelpers,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import { TabNavigationState } from '@react-navigation/routers';
 
 export type MaterialBottomTabNavigationEventMap = {
   /**
    * Event which fires on tapping on the tab in the tab bar.
    */
-  tabPress: undefined;
+  tabPress: { data: undefined; canPreventDefault: true };
 };
 
 export type MaterialBottomTabNavigationHelpers = NavigationHelpers<

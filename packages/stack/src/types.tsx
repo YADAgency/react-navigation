@@ -1,10 +1,10 @@
 import {
+  Animated,
   StyleProp,
   TextStyle,
   ViewStyle,
   LayoutChangeEvent,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { EdgeInsets } from 'react-native-safe-area-context';
 import {
   NavigationProp,
@@ -12,18 +12,18 @@ import {
   Descriptor,
   Route,
   NavigationHelpers,
-} from '@react-navigation/core';
+} from '@react-navigation/native';
 import { StackNavigationState } from '@react-navigation/routers';
 
 export type StackNavigationEventMap = {
   /**
    * Event which fires when a transition animation starts.
    */
-  transitionStart: { closing: boolean };
+  transitionStart: { data: { closing: boolean } };
   /**
    * Event which fires when a transition animation ends.
    */
-  transitionEnd: { closing: boolean };
+  transitionEnd: { data: { closing: boolean } };
 };
 
 export type StackNavigationHelpers = NavigationHelpers<
@@ -66,7 +66,11 @@ export type StackNavigationProp<
 
 export type Layout = { width: number; height: number };
 
-export type GestureDirection = 'horizontal' | 'vertical';
+export type GestureDirection =
+  | 'horizontal'
+  | 'horizontal-inverted'
+  | 'vertical'
+  | 'vertical-inverted';
 
 export type Scene<T> = {
   /**
@@ -84,21 +88,23 @@ export type Scene<T> = {
     /**
      * Progress value of the current screen.
      */
-    current: Animated.Node<number>;
+    current: Animated.AnimatedInterpolation;
     /**
      * Progress value for the screen after this one in the stack.
      * This can be `undefined` in case the screen animating is the last one.
      */
-    next?: Animated.Node<number>;
+    next?: Animated.AnimatedInterpolation;
     /**
      * Progress value for the screen before this one in the stack.
      * This can be `undefined` in case the screen animating is the first one.
      */
-    previous?: Animated.Node<number>;
+    previous?: Animated.AnimatedInterpolation;
   };
 };
 
 export type StackHeaderMode = 'float' | 'screen' | 'none';
+
+export type StackCardMode = 'card' | 'modal';
 
 export type StackHeaderOptions = {
   /**
@@ -198,6 +204,12 @@ export type StackHeaderOptions = {
    * This is useful if you want to render a semi-transparent header or a blurred background.
    */
   headerTransparent?: boolean;
+  /**
+   * Extra padding to add at the top of header to account for translucent status bar.
+   * By default, it uses the top value from the safe area insets of the device.
+   * Pass 0 or a custom value to disable the default behaviour, and customize the height.
+   */
+  headerStatusBarHeight?: number;
 };
 
 export type StackHeaderProps = {
@@ -268,17 +280,13 @@ export type StackNavigationOptions = StackHeaderOptions &
      */
     cardOverlayEnabled?: boolean;
     /**
-     * Whether to use a transparent background for the card instead of a white one.
-     * This is useful to implement things like modal dialogs where the previous scene should still be visible underneath the current one.
-     * Defaults to `false`.
-     *
-     * If you use [`react-native-screens`](https://github.com/kmagiera/react-native-screens),
-     * you should also specify `mode: 'modal'` in the stack view config so previous screens aren't detached.
-     */
-    cardTransparent?: boolean;
-    /**
      * Style object for the card in stack.
      * You can provide a custom background color to use instead of the default background here.
+     *
+     * You can also specify `{ backgroundColor: 'transparent' }` to make the previous screen visible underneath.
+     * This is useful to implement things like modal dialogs.
+     * If you use [`react-native-screens`](https://github.com/kmagiera/react-native-screens), you should also specify `mode: 'modal'`
+     * in the stack view config when using a transparent background so previous screens aren't detached.
      */
     cardStyle?: StyleProp<ViewStyle>;
     /**
@@ -286,6 +294,11 @@ export type StackNavigationOptions = StackHeaderOptions &
      * If you set it to `false`, the screen won't animate when pushing or popping. Defaults to `true`.
      */
     animationEnabled?: boolean;
+    /**
+     * The type of animation to use when this screen replaces another screen. Defaults to `push`.
+     * When `pop` is used, the `pop` animation is applied to the screen being replaced.
+     */
+    animationTypeForReplace?: 'push' | 'pop';
     /**
      * Whether you can use gestures to dismiss this screen. Defaults to `true` on iOS, `false` on Android.
      */
@@ -322,7 +335,7 @@ export type StackNavigationOptions = StackHeaderOptions &
   };
 
 export type StackNavigationConfig = {
-  mode?: 'card' | 'modal';
+  mode?: StackCardMode;
   headerMode?: StackHeaderMode;
   /**
    * If `false`, the keyboard will NOT automatically dismiss when navigating to a new screen.
@@ -403,6 +416,10 @@ export type StackHeaderTitleProps = {
    */
   allowFontScaling?: boolean;
   /**
+   * Tint color for the header.
+   */
+  tintColor?: string;
+  /**
    * Content of the title element. Usually the title string.
    */
   children?: string;
@@ -412,29 +429,21 @@ export type StackHeaderTitleProps = {
   style?: StyleProp<TextStyle>;
 };
 
-export type Screen = React.ComponentType<any> & {
-  navigationOptions?: StackNavigationOptions & {
-    [key: string]: any;
-  };
-};
-
-export type SpringConfig = {
-  damping: number;
-  mass: number;
-  stiffness: number;
-  restSpeedThreshold: number;
-  restDisplacementThreshold: number;
-  overshootClamping: boolean;
-};
-
-export type TimingConfig = {
-  duration: number;
-  easing: Animated.EasingFunction;
-};
-
 export type TransitionSpec =
-  | { animation: 'spring'; config: SpringConfig }
-  | { animation: 'timing'; config: TimingConfig };
+  | {
+      animation: 'spring';
+      config: Omit<
+        Animated.SpringAnimationConfig,
+        'toValue' | keyof Animated.AnimationConfig
+      >;
+    }
+  | {
+      animation: 'timing';
+      config: Omit<
+        Animated.TimingAnimationConfig,
+        'toValue' | keyof Animated.AnimationConfig
+      >;
+    };
 
 export type StackCardInterpolationProps = {
   /**
@@ -444,7 +453,7 @@ export type StackCardInterpolationProps = {
     /**
      * Animated node representing the progress value of the current screen.
      */
-    progress: Animated.Node<number>;
+    progress: Animated.AnimatedInterpolation;
   };
   /**
    * Values for the current screen the screen after this one in the stack.
@@ -454,16 +463,24 @@ export type StackCardInterpolationProps = {
     /**
      * Animated node representing the progress value of the next screen.
      */
-    progress: Animated.Node<number>;
+    progress: Animated.AnimatedInterpolation;
   };
   /**
    * The index of the card in the stack.
    */
   index: number;
   /**
-   * Animated node representing whether the card is closing.
+   * Animated node representing whether the card is closing (1 - closing, 0 - not closing).
    */
-  closing: Animated.Node<0 | 1>;
+  closing: Animated.AnimatedInterpolation;
+  /**
+   * Animated node representing whether the card is being swiped (1 - swiping, 0 - not swiping).
+   */
+  swiping: Animated.AnimatedInterpolation;
+  /**
+   * Animated node representing multiplier when direction is inverted (-1 - inverted, 1 - normal).
+   */
+  inverted: Animated.AnimatedInterpolation;
   /**
    * Layout measurements for various items we use for animation.
    */
@@ -515,7 +532,7 @@ export type StackHeaderInterpolationProps = {
     /**
      * Animated node representing the progress value of the current screen.
      */
-    progress: Animated.Node<number>;
+    progress: Animated.AnimatedInterpolation;
   };
   /**
    * Values for the current screen the screen after this one in the stack.
@@ -525,7 +542,7 @@ export type StackHeaderInterpolationProps = {
     /**
      * Animated node representing the progress value of the next screen.
      */
-    progress: Animated.Node<number>;
+    progress: Animated.AnimatedInterpolation;
   };
   /**
    * Layout measurements for various items we use for animation.

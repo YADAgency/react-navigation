@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { render, act } from 'react-native-testing-library';
 import useNavigationBuilder from '../useNavigationBuilder';
-import NavigationContainer from '../NavigationContainer';
+import BaseNavigationContainer from '../BaseNavigationContainer';
 import Screen from '../Screen';
 import MockRouter from './__fixtures__/MockRouter';
 import { Router, NavigationState } from '../types';
@@ -47,7 +47,7 @@ it('fires focus and blur events in root navigator', () => {
   const navigation = React.createRef<any>();
 
   const element = (
-    <NavigationContainer>
+    <BaseNavigationContainer>
       <TestNavigator ref={navigation}>
         <Screen
           name="first"
@@ -66,7 +66,7 @@ it('fires focus and blur events in root navigator', () => {
           component={createComponent(fourthFocusCallback, fourthBlurCallback)}
         />
       </TestNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   render(element);
@@ -139,7 +139,7 @@ it('fires focus and blur events in nested navigator', () => {
   const child = React.createRef<any>();
 
   const element = (
-    <NavigationContainer>
+    <BaseNavigationContainer>
       <TestNavigator ref={parent}>
         <Screen
           name="first"
@@ -170,7 +170,7 @@ it('fires focus and blur events in nested navigator', () => {
           )}
         </Screen>
       </TestNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   render(element);
@@ -273,7 +273,7 @@ it('fires blur event when a route is removed with a delay', async () => {
     React.useImperativeHandle(ref, () => navigation, [navigation]);
 
     const [previous, dispatch] = React.useReducer(
-      (state, action) => {
+      (state: any, action: any) => {
         if (state.routes !== action.routes) {
           return { ...state, ...action };
         }
@@ -307,12 +307,12 @@ it('fires blur event when a route is removed with a delay', async () => {
   const navigation = React.createRef<any>();
 
   const element = (
-    <NavigationContainer>
+    <BaseNavigationContainer>
       <TestNavigator ref={navigation}>
         <Screen name="first" component={First} />
         <Screen name="second" component={Second} />
       </TestNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   render(element);
@@ -363,13 +363,13 @@ it('fires custom events', () => {
   const ref = React.createRef<any>();
 
   const element = (
-    <NavigationContainer>
+    <BaseNavigationContainer>
       <TestNavigator ref={ref}>
         <Screen name="first" component={createComponent(firstCallback)} />
         <Screen name="second" component={createComponent(secondCallback)} />
         <Screen name="third" component={createComponent(thirdCallback)} />
       </TestNavigator>
-    </NavigationContainer>
+    </BaseNavigationContainer>
   );
 
   render(element);
@@ -391,6 +391,8 @@ it('fires custom events', () => {
   expect(thirdCallback).toBeCalledTimes(1);
   expect(thirdCallback.mock.calls[0][0].type).toBe('someSuperCoolEvent');
   expect(thirdCallback.mock.calls[0][0].data).toBe(42);
+  expect(thirdCallback.mock.calls[0][0].defaultPrevented).toBe(undefined);
+  expect(thirdCallback.mock.calls[0][0].preventDefault).toBe(undefined);
 
   act(() => {
     ref.current.navigation.emit({ type: eventName });
@@ -399,4 +401,63 @@ it('fires custom events', () => {
   expect(firstCallback).toBeCalledTimes(1);
   expect(secondCallback).toBeCalledTimes(1);
   expect(thirdCallback).toBeCalledTimes(2);
+});
+
+it('has option to prevent default', () => {
+  expect.assertions(5);
+
+  const eventName = 'someSuperCoolEvent';
+
+  const TestNavigator = React.forwardRef((props: any, ref: any): any => {
+    const { state, navigation, descriptors } = useNavigationBuilder(
+      MockRouter,
+      props
+    );
+
+    React.useImperativeHandle(ref, () => ({ navigation, state }), [
+      navigation,
+      state,
+    ]);
+
+    return state.routes.map(route => descriptors[route.key].render());
+  });
+
+  const callback = (e: any) => {
+    expect(e.type).toBe('someSuperCoolEvent');
+    expect(e.data).toBe(42);
+    expect(e.defaultPrevented).toBe(false);
+    expect(e.preventDefault).not.toBe(undefined);
+
+    e.preventDefault();
+
+    expect(e.defaultPrevented).toBe(true);
+  };
+
+  const Test = ({ navigation }: any) => {
+    React.useEffect(() => navigation.addListener(eventName, callback), [
+      navigation,
+    ]);
+
+    return null;
+  };
+
+  const ref = React.createRef<any>();
+
+  const element = (
+    <BaseNavigationContainer>
+      <TestNavigator ref={ref}>
+        <Screen name="first" component={Test} />
+      </TestNavigator>
+    </BaseNavigationContainer>
+  );
+
+  render(element);
+
+  act(() => {
+    ref.current.navigation.emit({
+      type: eventName,
+      data: 42,
+      canPreventDefault: true,
+    });
+  });
 });

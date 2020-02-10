@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-cycle
 import { NavigationState, PartialState } from './types';
 
 export type Action =
@@ -12,12 +11,6 @@ export type Action =
       payload:
         | { key: string; name?: undefined; params?: object }
         | { name: string; key?: string; params?: object };
-      source?: string;
-      target?: string;
-    }
-  | {
-      type: 'REPLACE';
-      payload: { name: string; key?: string; params?: object };
       source?: string;
       target?: string;
     }
@@ -58,10 +51,6 @@ export function navigate(...args: any): Action {
 
     return { type: 'NAVIGATE', payload };
   }
-}
-
-export function replace(name: string, params?: object): Action {
-  return { type: 'REPLACE', payload: { name, params } };
 }
 
 export function reset(state: PartialState<NavigationState>): Action {

@@ -1,21 +1,38 @@
 import * as React from 'react';
-import { StyleSheet, Platform, ViewProps } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Animated, StyleSheet, Platform, ViewProps } from 'react-native';
+import { useTheme } from '@react-navigation/native';
 
-export default function HeaderBackground({ style, ...rest }: ViewProps) {
-  return <Animated.View style={[styles.container, style]} {...rest} />;
+type Props = ViewProps & {
+  children?: React.ReactNode;
+};
+
+export default function HeaderBackground({ style, ...rest }: Props) {
+  const { colors } = useTheme();
+
+  return (
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.card,
+          borderBottomColor: colors.border,
+          shadowColor: colors.border,
+        },
+        style,
+      ]}
+      {...rest}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
     ...Platform.select({
       android: {
         elevation: 4,
       },
       ios: {
-        shadowColor: 'rgba(0, 0, 0, 0.3)',
         shadowOpacity: 0.85,
         shadowRadius: 0,
         shadowOffset: {
@@ -25,7 +42,6 @@ const styles = StyleSheet.create({
       },
       default: {
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: 'rgba(0, 0, 0, 0.20)',
       },
     }),
   },

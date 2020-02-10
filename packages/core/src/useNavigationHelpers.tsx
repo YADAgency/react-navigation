@@ -1,8 +1,7 @@
 import * as React from 'react';
 import * as CommonActions from './CommonActions';
 import NavigationContext from './NavigationContext';
-import ResetRootContext from './ResetRootContext';
-import { NavigationStateContext } from './NavigationContainer';
+import { NavigationStateContext } from './BaseNavigationContainer';
 import { NavigationEventEmitter } from './useEventEmitter';
 import {
   NavigationHelpers,
@@ -37,18 +36,26 @@ export default function useNavigationHelpers<
   Action extends NavigationAction,
   EventMap extends Record<string, any>
 >({ onAction, getState, emitter, router }: Options<State, Action>) {
-  const resetRoot = React.useContext(ResetRootContext);
   const parentNavigationHelpers = React.useContext(NavigationContext);
   const { performTransaction } = React.useContext(NavigationStateContext);
 
   return React.useMemo(() => {
-    const dispatch = (action: Action | ((state: State) => Action)) =>
+    const dispatch = (action: Action | ((state: State) => Action)) => {
       performTransaction(() => {
         const payload =
           typeof action === 'function' ? action(getState()) : action;
 
-        onAction(payload);
+        const handled = onAction(payload);
+
+        if (!handled && process.env.NODE_ENV !== 'production') {
+          console.error(
+            `The action '${payload.type}' with payload '${JSON.stringify(
+              payload.payload
+            )}' was not handled by any navigator. If you are trying to navigate to a screen, check if the screen exists in your navigator.`
+          );
+        }
       });
+    };
 
     const actions = {
       ...router.actionCreators,
@@ -67,7 +74,6 @@ export default function useNavigationHelpers<
     return {
       ...parentNavigationHelpers,
       ...helpers,
-      resetRoot,
       dispatch,
       emit: emitter.emit,
       isFocused: parentNavigationHelpers
@@ -81,7 +87,7 @@ export default function useNavigationHelpers<
             routeNames: state.routeNames,
             routeParamList: {},
           }) !== null ||
-          (parentNavigationHelpers && parentNavigationHelpers.canGoBack()) ||
+          parentNavigationHelpers?.canGoBack() ||
           false
         );
       },
@@ -91,7 +97,6 @@ export default function useNavigationHelpers<
     router,
     getState,
     parentNavigationHelpers,
-    resetRoot,
     emitter.emit,
     performTransaction,
     onAction,

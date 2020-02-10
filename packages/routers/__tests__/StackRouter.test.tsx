@@ -547,6 +547,32 @@ it('handles pop action', () => {
         index: 2,
         routeNames: ['baz', 'bar', 'qux'],
         routes: [
+          { key: 'baz', name: 'baz' },
+          { key: 'bar', name: 'bar' },
+          { key: 'qux', name: 'qux' },
+        ],
+      },
+      StackActions.pop(4),
+      options
+    )
+  ).toEqual({
+    stale: false,
+    type: 'stack',
+    key: 'root',
+    index: 0,
+    routeNames: ['baz', 'bar', 'qux'],
+    routes: [{ key: 'baz', name: 'baz' }],
+  });
+
+  expect(
+    router.getStateForAction(
+      {
+        stale: false,
+        type: 'stack',
+        key: 'root',
+        index: 2,
+        routeNames: ['baz', 'bar', 'qux'],
+        routes: [
           { key: 'baz-0', name: 'baz' },
           { key: 'bar-0', name: 'bar' },
           { key: 'qux-0', name: 'qux' },
@@ -563,9 +589,48 @@ it('handles pop action', () => {
     stale: false,
     type: 'stack',
     key: 'root',
-    index: 0,
+    index: 1,
     routeNames: ['baz', 'bar', 'qux'],
-    routes: [{ key: 'baz-0', name: 'baz' }],
+    routes: [
+      { key: 'baz-0', name: 'baz' },
+      { key: 'qux-0', name: 'qux' },
+    ],
+  });
+
+  expect(
+    router.getStateForAction(
+      {
+        stale: false,
+        type: 'stack',
+        key: 'root',
+        index: 4,
+        routeNames: ['baz', 'bar', 'qux'],
+        routes: [
+          { key: 'baz-0', name: 'baz' },
+          { key: 'bar-0', name: 'bar' },
+          { key: 'qux-0', name: 'qux' },
+          { key: 'quy-0', name: 'quy' },
+          { key: 'quz-0', name: 'quz' },
+        ],
+      },
+      {
+        ...StackActions.pop(2),
+        target: 'root',
+        source: 'qux-0',
+      },
+      options
+    )
+  ).toEqual({
+    stale: false,
+    type: 'stack',
+    key: 'root',
+    index: 2,
+    routeNames: ['baz', 'bar', 'qux'],
+    routes: [
+      { key: 'baz-0', name: 'baz' },
+      { key: 'quy-0', name: 'quy' },
+      { key: 'quz-0', name: 'quz' },
+    ],
   });
 
   expect(
@@ -616,6 +681,145 @@ it('handles pop to top action', () => {
     routeNames: ['baz', 'bar', 'qux'],
     routes: [{ key: 'baz', name: 'baz' }],
   });
+});
+
+it('replaces focused screen with replace', () => {
+  const router = StackRouter({});
+  const options = {
+    routeNames: ['foo', 'bar', 'baz', 'qux'],
+    routeParamList: {},
+  };
+
+  expect(
+    router.getStateForAction(
+      {
+        stale: false,
+        type: 'stack',
+        key: 'root',
+        index: 1,
+        routes: [
+          { key: 'foo', name: 'foo' },
+          { key: 'bar', name: 'bar', params: { fruit: 'orange' } },
+          { key: 'baz', name: 'baz' },
+        ],
+        routeNames: ['foo', 'bar', 'baz', 'qux'],
+      },
+      StackActions.replace('qux', { answer: 42 }),
+      options
+    )
+  ).toEqual({
+    stale: false,
+    type: 'stack',
+    key: 'root',
+    index: 1,
+    routes: [
+      { key: 'foo', name: 'foo' },
+      { key: 'qux-test', name: 'qux', params: { answer: 42 } },
+      { key: 'baz', name: 'baz' },
+    ],
+    routeNames: ['foo', 'bar', 'baz', 'qux'],
+  });
+});
+
+it('replaces source screen with replace', () => {
+  const router = StackRouter({});
+  const options = {
+    routeNames: ['foo', 'bar', 'baz', 'qux'],
+    routeParamList: {},
+  };
+
+  expect(
+    router.getStateForAction(
+      {
+        stale: false,
+        type: 'stack',
+        key: 'root',
+        index: 1,
+        routes: [
+          { key: 'foo', name: 'foo' },
+          { key: 'bar', name: 'bar', params: { fruit: 'orange' } },
+          { key: 'baz', name: 'baz' },
+        ],
+        routeNames: ['foo', 'bar', 'baz', 'qux'],
+      },
+      {
+        ...StackActions.replace('qux', { answer: 42 }),
+        source: 'baz',
+      },
+      options
+    )
+  ).toEqual({
+    stale: false,
+    type: 'stack',
+    key: 'root',
+    index: 1,
+    routes: [
+      { key: 'foo', name: 'foo' },
+      { key: 'bar', name: 'bar', params: { fruit: 'orange' } },
+      { key: 'qux-test', name: 'qux', params: { answer: 42 } },
+    ],
+    routeNames: ['foo', 'bar', 'baz', 'qux'],
+  });
+});
+
+it("doesn't handle replace if source key isn't present", () => {
+  const router = StackRouter({});
+  const options = {
+    routeNames: ['foo', 'bar', 'baz', 'qux'],
+    routeParamList: {},
+  };
+
+  expect(
+    router.getStateForAction(
+      {
+        stale: false,
+        type: 'stack',
+        key: 'root',
+        index: 1,
+        routes: [
+          { key: 'foo', name: 'foo' },
+          { key: 'bar', name: 'bar', params: { fruit: 'orange' } },
+          { key: 'baz', name: 'baz' },
+        ],
+        routeNames: ['foo', 'bar', 'baz', 'qux'],
+      },
+      {
+        ...StackActions.replace('qux', { answer: 42 }),
+        source: 'magic',
+      },
+      options
+    )
+  ).toBe(null);
+});
+
+it("doesn't handle replace if screen to replace with isn't present", () => {
+  const router = StackRouter({});
+  const options = {
+    routeNames: ['foo', 'bar', 'baz', 'qux'],
+    routeParamList: {},
+  };
+
+  expect(
+    router.getStateForAction(
+      {
+        stale: false,
+        type: 'stack',
+        key: 'root',
+        index: 1,
+        routes: [
+          { key: 'foo', name: 'foo' },
+          { key: 'bar', name: 'bar', params: { fruit: 'orange' } },
+          { key: 'baz', name: 'baz' },
+        ],
+        routeNames: ['foo', 'bar', 'baz', 'qux'],
+      },
+      {
+        ...StackActions.replace('nonexistent', { answer: 42 }),
+        source: 'magic',
+      },
+      options
+    )
+  ).toBe(null);
 });
 
 it('handles push action', () => {

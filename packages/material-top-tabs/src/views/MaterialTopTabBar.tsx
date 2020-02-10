@@ -1,122 +1,110 @@
 import * as React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { TabBar } from 'react-native-tab-view';
-import Animated from 'react-native-reanimated';
-import { Route } from '@react-navigation/core';
+import { Route, useTheme } from '@react-navigation/native';
+import Color from 'color';
 
 import { MaterialTopTabBarProps } from '../types';
 
-export default class TabBarTop extends React.PureComponent<
-  MaterialTopTabBarProps
-> {
-  static defaultProps = {
-    activeTintColor: 'rgba(255, 255, 255, 1)',
-    inactiveTintColor: 'rgba(255, 255, 255, 0.7)',
-    showIcon: false,
-    showLabel: true,
-    upperCaseLabel: true,
-    allowFontScaling: true,
-  };
+export default function TabBarTop(props: MaterialTopTabBarProps) {
+  const { colors } = useTheme();
 
-  private renderLabel = ({
-    route,
-    focused,
-    color,
-  }: {
-    route: Route<string>;
-    focused: boolean;
-    color: string;
-  }) => {
-    const {
-      getLabelText,
-      showLabel,
-      upperCaseLabel,
-      labelStyle,
-      allowFontScaling,
-    } = this.props;
+  const {
+    state,
+    navigation,
+    descriptors,
+    activeTintColor = colors.text,
+    inactiveTintColor = Color(activeTintColor)
+      .alpha(0.5)
+      .rgb()
+      .string(),
+    allowFontScaling = true,
+    showIcon = false,
+    showLabel = true,
+    pressColor = Color(activeTintColor)
+      .alpha(0.08)
+      .rgb()
+      .string(),
+    iconStyle,
+    labelStyle,
+    indicatorStyle,
+    style,
+    ...rest
+  } = props;
 
-    if (showLabel === false) {
-      return null;
-    }
+  return (
+    <TabBar
+      {...rest}
+      navigationState={state}
+      activeColor={activeTintColor}
+      inactiveColor={inactiveTintColor}
+      indicatorStyle={[{ backgroundColor: colors.primary }, indicatorStyle]}
+      style={[{ backgroundColor: colors.card }, style]}
+      pressColor={pressColor}
+      getAccessibilityLabel={({ route }) =>
+        descriptors[route.key].options.tabBarAccessibilityLabel
+      }
+      getTestID={({ route }) => descriptors[route.key].options.tabBarTestID}
+      onTabPress={({ route, preventDefault }) => {
+        const event = navigation.emit({
+          type: 'tabPress',
+          target: route.key,
+          canPreventDefault: true,
+        });
 
-    const label = getLabelText({ route });
+        if (event.defaultPrevented) {
+          preventDefault();
+        }
+      }}
+      onTabLongPress={({ route }) =>
+        navigation.emit({
+          type: 'tabLongPress',
+          target: route.key,
+        })
+      }
+      renderIcon={({ route, focused, color }) => {
+        if (showIcon === false) {
+          return null;
+        }
 
-    if (typeof label === 'string') {
-      return (
-        <Animated.Text
-          style={[styles.label, { color }, labelStyle]}
-          allowFontScaling={allowFontScaling}
-        >
-          {upperCaseLabel ? label.toUpperCase() : label}
-        </Animated.Text>
-      );
-    }
+        const { options } = descriptors[route.key];
 
-    return label({ focused, color });
-  };
+        if (options.tabBarIcon !== undefined) {
+          const icon = options.tabBarIcon({ focused, color });
 
-  private renderIcon = ({
-    route,
-    focused,
-    color,
-  }: {
-    route: Route<string>;
-    focused: boolean;
-    color: string;
-  }) => {
-    const { descriptors, showIcon, iconStyle } = this.props;
+          return <View style={[styles.icon, iconStyle]}>{icon}</View>;
+        }
 
-    if (showIcon === false) {
-      return null;
-    }
+        return null;
+      }}
+      renderLabel={({ route, focused, color }) => {
+        if (showLabel === false) {
+          return null;
+        }
 
-    const { options } = descriptors[route.key];
+        const { options } = descriptors[route.key];
+        const label =
+          options.tabBarLabel !== undefined
+            ? options.tabBarLabel
+            : options.title !== undefined
+            ? options.title
+            : (route as Route<string>).name;
 
-    if (options.tabBarIcon !== undefined) {
-      const icon = options.tabBarIcon({ focused, color });
+        if (typeof label === 'string') {
+          return (
+            <Text
+              style={[styles.label, { color }, labelStyle]}
+              allowFontScaling={allowFontScaling}
+            >
+              {label}
+            </Text>
+          );
+        }
 
-      return <View style={[styles.icon, iconStyle]}>{icon}</View>;
-    }
-
-    return null;
-  };
-
-  render() {
-    const {
-      state,
-      activeTintColor,
-      inactiveTintColor,
-      getAccessibilityLabel,
-      getTestID,
-      onTabPress,
-      onTabLongPress,
-      /* eslint-disable @typescript-eslint/no-unused-vars */
-      getLabelText,
-      allowFontScaling,
-      showLabel,
-      showIcon,
-      upperCaseLabel,
-      tabBarPosition,
-      iconStyle,
-      /* eslint-enable @typescript-eslint/no-unused-vars */
-      ...rest
-    } = this.props;
-
-    return (
-      <TabBar
-        {...rest}
-        activeColor={activeTintColor}
-        inactiveColor={inactiveTintColor}
-        navigationState={state}
-        getAccessibilityLabel={getAccessibilityLabel}
-        getTestID={getTestID}
-        renderIcon={this.renderIcon}
-        renderLabel={this.renderLabel}
-        onTabPress={onTabPress}
-        onTabLongPress={onTabLongPress}
-      />
-    );
-  }
+        return label({ focused, color });
+      }}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -126,6 +114,7 @@ const styles = StyleSheet.create({
   },
   label: {
     textAlign: 'center',
+    textTransform: 'uppercase',
     fontSize: 13,
     margin: 4,
     backgroundColor: 'transparent',

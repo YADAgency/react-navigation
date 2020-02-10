@@ -1,5 +1,5 @@
 {
-  "name": "@yadagency/react-navigation-drawer",
+  "name": "@yada/react-navigation-drawer",
   "description": "Drawer navigator component with animated transitions and gesturess",
   "version": "5.0.0",
   "keywords": [
@@ -13,9 +13,9 @@
     "drawer"
   ],
   "license": "MIT",
-  "repository": "https://github.com/YADAgency/navigation-ex/tree/master/packages/drawer",
+  "repository": "https://bitbucket.org/YetAnotherDevAgency/react-navigation/src/master/packages/drawer",
   "bugs": {
-    "url": "https://github.com/YADAgency/navigation-ex/issues"
+    "url": "https://bitbucket.org/YetAnotherDevAgency/react-navigation"
   },
   "homepage": "https://reactnavigation.org/docs/drawer-navigator.html",
   "main": "lib/commonjs/index.js",
@@ -28,7 +28,7 @@
   ],
   "sideEffects": false,
   "publishConfig": {
-    "registry":"https://npm.pkg.github.com/"
+    "registry": "https://npm.yada.matthieuharle.dev/"
   },
   "scripts": {
     "prepare": "bob build",

@@ -13,9 +13,9 @@
     "drawer"
   ],
   "license": "MIT",
-  "repository": "https://bitbucket.org/YetAnotherDevAgency/react-navigation/src/master/packages/drawer",
+  "repository": "https://github.com/YADAgency/navigation-ex/tree/master/packages/drawer",
   "bugs": {
-    "url": "https://bitbucket.org/YetAnotherDevAgency/react-navigation"
+    "url": "https://github.com/YADAgency/navigation-ex/issues"
   },
   "homepage": "https://reactnavigation.org/docs/drawer-navigator.html",
   "main": "lib/commonjs/index.js",

@@ -11,12 +11,16 @@ import { RouteProp } from './types';
 export default function useRoute<
   T extends RouteProp<ParamListBase, string>
 >(): T {
-  const route = React.useContext(NavigationRouteContext);
+  let route = React.useContext(NavigationRouteContext);
 
   if (route === undefined) {
     throw new Error(
       "We couldn't find a route object. Is your component inside a screen in a navigator?"
     );
+  }
+
+  if (!route.params) {
+    route = Object.assign({}, route, { params: {} });
   }
 
   return route as T;

@@ -1,4 +1,4 @@
-export * from '@react-navigation/routers';
+export * from '@yadagency/react-navigation-routers';
 
 export { default as BaseNavigationContainer } from './BaseNavigationContainer';
 export { default as createNavigatorFactory } from './createNavigatorFactory';

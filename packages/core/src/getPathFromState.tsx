@@ -3,7 +3,7 @@ import {
   NavigationState,
   PartialState,
   Route,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
 

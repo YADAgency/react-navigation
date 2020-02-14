@@ -1,4 +1,7 @@
-import { PartialState, NavigationState } from '@react-navigation/routers';
+import {
+  PartialState,
+  NavigationState,
+} from '@yadagency/react-navigation-routers';
 
 type NavigateParams = {
   screen?: string;

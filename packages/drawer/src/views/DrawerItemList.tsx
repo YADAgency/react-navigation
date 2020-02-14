@@ -3,7 +3,7 @@ import {
   CommonActions,
   DrawerActions,
   DrawerNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import DrawerItem from './DrawerItem';
 import {
   DrawerNavigationHelpers,

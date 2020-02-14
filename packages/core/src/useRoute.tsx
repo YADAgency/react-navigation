@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ParamListBase } from '@react-navigation/routers';
+import { ParamListBase } from '@yadagency/react-navigation-routers';
 import NavigationRouteContext from './NavigationRouteContext';
 import { RouteProp } from './types';
 

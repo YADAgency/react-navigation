@@ -4,7 +4,7 @@ import {
   ParamListBase,
   NavigationState,
   PartialState,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import { NavigationStateContext } from './BaseNavigationContainer';
 import NavigationContext from './NavigationContext';
 import NavigationRouteContext from './NavigationRouteContext';

@@ -6,7 +6,7 @@ import {
   StackActions,
   StackNavigationState,
   Route,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 import CardStack from './CardStack';
 import KeyboardManager from '../KeyboardManager';

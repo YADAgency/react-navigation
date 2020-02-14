@@ -1,4 +1,4 @@
-import { TabActions, TabActionType } from '@react-navigation/native';
+import { TabActions, TabActionType } from '@yadagency/react-navigation-native';
 
 export function jumpTo({
   routeName,

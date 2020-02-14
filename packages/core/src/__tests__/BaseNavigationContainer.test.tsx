@@ -4,7 +4,7 @@ import {
   DefaultRouterOptions,
   NavigationState,
   Router,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import BaseNavigationContainer, {
   NavigationStateContext,
 } from '../BaseNavigationContainer';

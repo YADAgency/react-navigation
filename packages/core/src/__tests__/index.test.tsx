@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { render, act } from 'react-native-testing-library';
-import { NavigationState } from '@react-navigation/routers';
+import { NavigationState } from '@yadagency/react-navigation-routers';
 import Screen from '../Screen';
 import BaseNavigationContainer from '../BaseNavigationContainer';
 import useNavigationBuilder from '../useNavigationBuilder';

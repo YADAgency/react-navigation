@@ -6,7 +6,7 @@ import {
   TabRouter,
   TabRouterOptions,
   TabNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import MaterialTopTabView from '../views/MaterialTopTabView';
 import {
   MaterialTopTabNavigationConfig,

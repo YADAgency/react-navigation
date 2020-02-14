@@ -7,7 +7,7 @@ import {
   PartialState,
   Route,
   ParamListBase,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 
 export type DefaultNavigatorOptions<
   ScreenOptions extends object

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NavigationState } from '@react-navigation/routers';
+import { NavigationState } from '@yadagency/react-navigation-routers';
 import NavigationContext from './NavigationContext';
 import { NavigationEventEmitter } from './useEventEmitter';
 

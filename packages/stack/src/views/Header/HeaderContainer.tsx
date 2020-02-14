@@ -5,7 +5,7 @@ import {
   NavigationRouteContext,
   Route,
   ParamListBase,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import { EdgeInsets } from 'react-native-safe-area-context';
 
 import Header from './Header';

@@ -6,7 +6,7 @@ import {
   DrawerNavigationState,
   DrawerRouterOptions,
   DrawerRouter,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 import DrawerView from '../views/DrawerView';
 import {

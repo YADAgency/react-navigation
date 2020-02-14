@@ -5,7 +5,7 @@ import {
   NavigationProp,
   ParamListBase,
   useNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import createCompatNavigationProp from './createCompatNavigationProp';
 import { CompatNavigationProp } from './types';
 

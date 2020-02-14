@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { View, TextInput, ActivityIndicator, StyleSheet } from 'react-native';
 import { Title, Button } from 'react-native-paper';
-import { useTheme, ParamListBase } from '@react-navigation/native';
+import { useTheme, ParamListBase } from '@yadagency/react-navigation-native';
 import {
   createStackNavigator,
   HeaderBackButton,
   StackNavigationProp,
-} from '@react-navigation/stack';
+} from '@yadagency/react-navigation-stack';
 
 type AuthStackParams = {
   Splash: undefined;

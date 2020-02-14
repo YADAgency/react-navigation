@@ -8,7 +8,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { Route, useTheme } from '@react-navigation/native';
+import { Route, useTheme } from '@yadagency/react-navigation-native';
 import Color from 'color';
 
 import TabBarIcon from './TabBarIcon';

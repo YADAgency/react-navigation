@@ -11,7 +11,7 @@ import {
   ParamListBase,
   Descriptor,
   TabNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 export type BottomTabNavigationEventMap = {
   /**

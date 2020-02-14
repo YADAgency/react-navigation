@@ -4,7 +4,7 @@ import {
   NavigationState,
   ParamListBase,
   Router,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import SceneView from './SceneView';
 import NavigationBuilderContext, {
   ChildActionListener,

@@ -7,7 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '@yadagency/react-navigation-native';
 import Color from 'color';
 import TouchableItem from './TouchableItem';
 

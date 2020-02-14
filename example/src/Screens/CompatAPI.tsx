@@ -4,11 +4,11 @@ import { Button } from 'react-native-paper';
 import {
   createCompatNavigatorFactory,
   CompatScreenType,
-} from '@react-navigation/compat';
+} from '@yadagency/react-navigation-compat';
 import {
   createStackNavigator,
   StackNavigationProp,
-} from '@react-navigation/stack';
+} from '@yadagency/react-navigation-stack';
 import Article from '../Shared/Article';
 import Albums from '../Shared/Albums';
 

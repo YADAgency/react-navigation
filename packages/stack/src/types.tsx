@@ -13,7 +13,7 @@ import {
   Route,
   NavigationHelpers,
   StackNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 export type StackNavigationEventMap = {
   /**

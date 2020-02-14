@@ -6,7 +6,7 @@ import {
   InitialState,
   PartialState,
   NavigationAction,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import EnsureSingleNavigator from './EnsureSingleNavigator';
 import NavigationBuilderContext from './NavigationBuilderContext';
 import useFocusedListeners from './useFocusedListeners';

@@ -5,7 +5,7 @@ import {
   ParamListBase,
   NavigationState,
   Router,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import { NavigationEventEmitter } from './useEventEmitter';
 import NavigationContext from './NavigationContext';
 

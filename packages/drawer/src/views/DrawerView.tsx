@@ -19,7 +19,7 @@ import {
   DrawerNavigationState,
   DrawerActions,
   useTheme,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 import DrawerGestureContext from '../utils/DrawerGestureContext';
 import SafeAreaProviderCompat from './SafeAreaProviderCompat';

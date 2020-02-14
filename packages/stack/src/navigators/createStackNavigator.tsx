@@ -8,7 +8,7 @@ import {
   StackRouterOptions,
   StackNavigationState,
   StackActions,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import StackView from '../views/Stack/StackView';
 import {
   StackNavigationConfig,

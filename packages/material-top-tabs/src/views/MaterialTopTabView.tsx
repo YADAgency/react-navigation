@@ -4,7 +4,7 @@ import {
   TabNavigationState,
   TabActions,
   useTheme,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 import MaterialTopTabBar from './MaterialTopTabBar';
 import {

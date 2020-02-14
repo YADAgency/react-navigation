@@ -3,7 +3,7 @@ import {
   NavigationAction,
   NavigationState,
   ParamListBase,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import { NavigationHelpers } from './types';
 
 export type ChildActionListener = (

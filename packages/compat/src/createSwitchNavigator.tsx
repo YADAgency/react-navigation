@@ -5,7 +5,7 @@ import {
   TabRouter,
   TabRouterOptions,
   TabNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import createCompatNavigatorFactory from './createCompatNavigatorFactory';
 
 type Props = DefaultNavigatorOptions<{}> & TabRouterOptions;

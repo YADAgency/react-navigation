@@ -4,7 +4,7 @@ import {
   NavigationState,
   PartialState,
   InitialState,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 
 type ParseConfig = Record<string, (value: string) => any>;
 

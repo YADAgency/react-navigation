@@ -9,7 +9,7 @@ import {
   RouterFactory,
   PartialState,
   NavigationAction,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import { NavigationStateContext } from './BaseNavigationContainer';
 import NavigationRouteContext from './NavigationRouteContext';
 import Screen from './Screen';

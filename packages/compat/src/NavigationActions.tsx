@@ -1,4 +1,7 @@
-import { CommonActions, NavigationState } from '@react-navigation/native';
+import {
+  CommonActions,
+  NavigationState,
+} from '@yadagency/react-navigation-native';
 
 export function navigate({
   routeName,

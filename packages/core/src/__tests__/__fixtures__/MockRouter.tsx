@@ -5,7 +5,7 @@ import {
   NavigationState,
   Route,
   DefaultRouterOptions,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 
 export type MockActions = CommonNavigationAction | { type: 'NOOP' | 'UPDATE' };
 

@@ -7,7 +7,7 @@ import {
   Descriptor,
   NavigationHelpers,
   DrawerNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
 export type Scene = {

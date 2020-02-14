@@ -8,13 +8,13 @@ import {
   ParamListBase,
   useFocusEffect,
   useTheme,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import { DrawerNavigationProp } from '@yadagency/react-navigation-drawer';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from '@yadagency/react-navigation-stack';
 import {
   createNativeStackNavigator,
   NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
+} from '@yadagency/react-navigation-native-stack';
 import Albums from '../Shared/Albums';
 
 type NativeStackParams = {

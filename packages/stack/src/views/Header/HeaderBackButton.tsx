@@ -8,7 +8,7 @@ import {
   StyleSheet,
   LayoutChangeEvent,
 } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '@yadagency/react-navigation-native';
 import MaskedView from '../MaskedView';
 import TouchableItem from '../TouchableItem';
 import { StackHeaderLeftButtonProps } from '../../types';

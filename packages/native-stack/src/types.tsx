@@ -10,7 +10,7 @@ import {
   ParamListBase,
   StackNavigationState,
   StackRouterOptions,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 export type NativeStackNavigationEventMap = {
   /**

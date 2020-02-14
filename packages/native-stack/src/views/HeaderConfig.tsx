@@ -4,7 +4,7 @@ import {
   ScreenStackHeaderRightView,
   // eslint-disable-next-line import/no-unresolved
 } from 'react-native-screens';
-import { Route, useTheme } from '@react-navigation/native';
+import { Route, useTheme } from '@yadagency/react-navigation-native';
 import { NativeStackNavigationOptions } from '../types';
 
 type Props = NativeStackNavigationOptions & {

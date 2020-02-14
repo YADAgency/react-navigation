@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Animated, StyleSheet, Platform, TextProps } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { useTheme } from '@yadagency/react-navigation-native';
 
 type Props = TextProps & {
   tintColor?: string;

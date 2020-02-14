@@ -3,13 +3,13 @@ import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { Button, Appbar } from 'react-native-paper';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { RouteProp, ParamListBase } from '@react-navigation/native';
+import { RouteProp, ParamListBase } from '@yadagency/react-navigation-native';
 import {
   createStackNavigator,
   StackNavigationProp,
   HeaderBackground,
   useHeaderHeight,
-} from '@react-navigation/stack';
+} from '@yadagency/react-navigation-stack';
 import Article from '../Shared/Article';
 import Albums from '../Shared/Albums';
 

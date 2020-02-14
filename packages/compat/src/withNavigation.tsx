@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import {
+  NavigationProp,
+  ParamListBase,
+} from '@yadagency/react-navigation-native';
 import useCompatNavigation from './useCompatNavigation';
 import { CompatNavigationProp } from './types';
 

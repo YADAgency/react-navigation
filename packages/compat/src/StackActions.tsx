@@ -2,7 +2,7 @@ import {
   CommonActions,
   StackActions,
   StackActionType,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 export function reset(): CommonActions.Action {
   throw new Error(

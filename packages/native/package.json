@@ -1,7 +1,7 @@
 {
-  "name": "@react-navigation/native",
+  "name": "@yadagency/react-navigation-native",
   "description": "React Native integration for React Navigation",
-  "version": "5.0.3",
+  "version": "5.0.3-2",
   "keywords": [
     "react-native",
     "react-navigation",
@@ -9,9 +9,13 @@
     "android"
   ],
   "license": "MIT",
-  "repository": "https://github.com/react-navigation/react-navigation/tree/master/packages/native",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YADAgency/react-navigation.git",
+    "directory": "packages/native"
+  },
   "bugs": {
-    "url": "https://github.com/react-navigation/react-navigation/issues"
+    "url": "https://github.com/YADAgency/react-navigation/issues"
   },
   "homepage": "https://reactnavigation.org",
   "main": "lib/commonjs/index.js",
@@ -24,14 +28,14 @@
   ],
   "sideEffects": false,
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
     "prepare": "bob build",
     "clean": "del lib"
   },
   "dependencies": {
-    "@yadagency/react-navigation-core": "^5.1.2"
+    "@yadagency/react-navigation-core": "^5.1.2-3"
   },
   "devDependencies": {
     "@react-native-community/bob": "^0.9.3",

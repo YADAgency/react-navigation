@@ -5,7 +5,7 @@ import {
   NavigationProp,
   NavigationHelpers,
   TabNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 export type MaterialBottomTabNavigationEventMap = {
   /**

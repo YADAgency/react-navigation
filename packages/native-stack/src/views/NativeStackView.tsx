@@ -10,7 +10,7 @@ import {
   StackNavigationState,
   StackActions,
   useTheme,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import HeaderConfig from './HeaderConfig';
 import {
   NativeStackNavigationHelpers,

@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import { TabNavigationState, useTheme } from '@react-navigation/native';
+import {
+  TabNavigationState,
+  useTheme,
+} from '@yadagency/react-navigation-native';
 // eslint-disable-next-line import/no-unresolved
 import { ScreenContainer } from 'react-native-screens';
 

@@ -4,7 +4,7 @@ import {
   ParamListBase,
   NavigationProp,
   RouteProp,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import * as helpers from './helpers';
 import { CompatNavigationProp } from './types';
 

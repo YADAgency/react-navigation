@@ -3,7 +3,7 @@ import {
   NavigationProp,
   ParamListBase,
   RouteProp,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import ScreenPropsContext from './ScreenPropsContext';
 import useCompatNavigation from './useCompatNavigation';
 

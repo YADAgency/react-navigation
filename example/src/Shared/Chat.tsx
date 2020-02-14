@@ -8,7 +8,7 @@ import {
   StyleSheet,
   ScrollViewProps,
 } from 'react-native';
-import { useScrollToTop, useTheme } from '@react-navigation/native';
+import { useScrollToTop, useTheme } from '@yadagency/react-navigation-native';
 import Color from 'color';
 
 const MESSAGES = [

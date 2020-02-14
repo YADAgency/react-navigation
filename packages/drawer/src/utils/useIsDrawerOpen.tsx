@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { useNavigation, ParamListBase } from '@react-navigation/native';
+import {
+  useNavigation,
+  ParamListBase,
+} from '@yadagency/react-navigation-native';
 import { DrawerNavigationProp } from '../types';
 
 /**

@@ -5,7 +5,7 @@ import {
   PartialState,
   Router,
   RouterConfigOptions,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import NavigationBuilderContext, {
   ChildActionListener,
 } from './NavigationBuilderContext';

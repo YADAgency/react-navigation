@@ -10,7 +10,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { useScrollToTop } from '@react-navigation/native';
+import { useScrollToTop } from '@yadagency/react-navigation-native';
 
 const COVERS = [
   require('../../assets/album-art-01.jpg'),

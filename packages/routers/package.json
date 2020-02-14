@@ -1,5 +1,5 @@
 {
-  "name": "@react-navigation/routers",
+  "name": "@yadagency/react-navigation-routers",
   "description": "Routers to help build custom navigators",
   "version": "5.0.1",
   "keywords": [
@@ -8,9 +8,13 @@
     "react-navigation"
   ],
   "license": "MIT",
-  "repository": "https://github.com/react-navigation/react-navigation/tree/master/packages/routers",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YADAgency/react-navigation.git",
+    "directory": "packages/routers"
+  },
   "bugs": {
-    "url": "https://github.com/react-navigation/react-navigation/issues"
+    "url": "https://github.com/YADAgency/react-navigation/issues"
   },
   "homepage": "https://reactnavigation.org/docs/custom-routers.html",
   "main": "lib/commonjs/index.js",
@@ -23,7 +27,7 @@
   ],
   "sideEffects": false,
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
     "prepare": "bob build",

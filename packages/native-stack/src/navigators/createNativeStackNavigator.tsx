@@ -7,7 +7,7 @@ import {
   StackNavigationState,
   StackRouterOptions,
   StackActions,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 
 import {
   screensEnabled,

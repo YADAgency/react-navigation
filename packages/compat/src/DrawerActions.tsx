@@ -1,4 +1,7 @@
-import { DrawerActions, DrawerActionType } from '@react-navigation/native';
+import {
+  DrawerActions,
+  DrawerActionType,
+} from '@yadagency/react-navigation-native';
 
 export function openDrawer(): DrawerActionType {
   return DrawerActions.openDrawer();

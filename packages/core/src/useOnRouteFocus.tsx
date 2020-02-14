@@ -3,7 +3,7 @@ import {
   NavigationAction,
   NavigationState,
   Router,
-} from '@react-navigation/routers';
+} from '@yadagency/react-navigation-routers';
 import NavigationBuilderContext from './NavigationBuilderContext';
 
 type Options<Action extends NavigationAction> = {

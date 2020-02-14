@@ -6,7 +6,7 @@ import {
   TabRouter,
   TabRouterOptions,
   TabNavigationState,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import BottomTabView from '../views/BottomTabView';
 import {
   BottomTabNavigationConfig,

@@ -14,7 +14,7 @@ import {
   NavigationRouteContext,
   CommonActions,
   useTheme,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
 
 import BottomTabItem from './BottomTabItem';

@@ -1,4 +1,4 @@
-import { ParamListBase } from '@react-navigation/routers';
+import { ParamListBase } from '@yadagency/react-navigation-routers';
 import { RouteConfig } from './types';
 
 /**

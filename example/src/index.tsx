@@ -25,7 +25,7 @@ import {
   NavigationContainer,
   DefaultTheme,
   DarkTheme,
-} from '@react-navigation/native';
+} from '@yadagency/react-navigation-native';
 import {
   createDrawerNavigator,
   DrawerNavigationProp,
@@ -35,7 +35,7 @@ import {
   Assets as StackAssets,
   StackNavigationProp,
   HeaderStyleInterpolators,
-} from '@react-navigation/stack';
+} from '@yadagency/react-navigation-stack';
 
 import LinkingPrefixes from './LinkingPrefixes';
 import SimpleStack from './Screens/SimpleStack';

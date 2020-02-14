@@ -1,17 +1,15 @@
 import * as React from 'react';
-import * as CommonActions from './CommonActions';
-import NavigationContext from './NavigationContext';
-import { NavigationStateContext } from './BaseNavigationContainer';
-import { NavigationEventEmitter } from './useEventEmitter';
 import {
-  NavigationHelpers,
-  NavigationProp,
+  CommonActions,
   NavigationAction,
   NavigationState,
   ParamListBase,
   Router,
-  PrivateValueStore,
-} from './types';
+} from '@react-navigation/routers';
+import NavigationContext from './NavigationContext';
+import { NavigationStateContext } from './BaseNavigationContainer';
+import { NavigationEventEmitter } from './useEventEmitter';
+import { NavigationHelpers, NavigationProp, PrivateValueStore } from './types';
 
 // This is to make TypeScript compiler happy
 // eslint-disable-next-line babel/no-unused-expressions
@@ -51,7 +49,7 @@ export default function useNavigationHelpers<
           console.error(
             `The action '${payload.type}' with payload '${JSON.stringify(
               payload.payload
-            )}' was not handled by any navigator. If you are trying to navigate to a screen, check if the screen exists in your navigator.`
+            )}' was not handled by any navigator. If you are trying to navigate to a screen, check if the screen exists in your navigator. If you're trying to navigate to a screen in a nested navigator, see https://reactnavigation.org/docs/en/nesting-navigators.html#navigating-to-a-screen-in-a-nested-navigator.`
           );
         }
       });

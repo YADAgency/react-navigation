@@ -3,6 +3,45 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.1.2](https://github.com/react-navigation/react-navigation/tree/master/packages/core/compare/@react-navigation/core@5.1.1...@react-navigation/core@5.1.2) (2020-02-12)
+
+
+### Bug Fixes
+
+* fix false positives for circular object check ([030c63c](https://github.com/react-navigation/react-navigation/tree/master/packages/core/commit/030c63c89fe447aa484b767831c8f8e26e90431c)), closes [#6827](https://github.com/react-navigation/react-navigation/tree/master/packages/core/issues/6827)
+* static container memo check ([#6825](https://github.com/react-navigation/react-navigation/tree/master/packages/core/issues/6825)) ([2bf0958](https://github.com/react-navigation/react-navigation/tree/master/packages/core/commit/2bf09585021470f500d967e9242836840efe970f))
+
+
+
+
+
+## [5.1.1](https://github.com/react-navigation/react-navigation/tree/master/packages/core/compare/@react-navigation/core@5.1.0...@react-navigation/core@5.1.1) (2020-02-11)
+
+
+### Bug Fixes
+
+* don't cleanup state on switching navigator ([359ae1b](https://github.com/react-navigation/react-navigation/tree/master/packages/core/commit/359ae1bfacec5ef880b3944f465c881aedb16767))
+
+
+
+
+
+# [5.1.0](https://github.com/react-navigation/react-navigation/tree/master/packages/core/compare/@react-navigation/core@5.0.0-alpha.43...@react-navigation/core@5.1.0) (2020-02-10)
+
+
+### Bug Fixes
+
+* add some links in the error messages ([13b4e07](https://github.com/react-navigation/react-navigation/tree/master/packages/core/commit/13b4e07348496f7cb516d625b44a6a7d310ef9af))
+
+
+### Features
+
+* support ignoring empty path strings ([#349](https://github.com/react-navigation/react-navigation/tree/master/packages/core/issues/349)) ([61b1134](https://github.com/react-navigation/react-navigation/tree/master/packages/core/commit/61b1134f90310390fe819622c1f33273fca0bd42))
+
+
+
+
+
 # [5.0.0-alpha.43](https://github.com/react-navigation/navigation-ex/tree/master/packages/core/compare/@react-navigation/core@5.0.0-alpha.42...@react-navigation/core@5.0.0-alpha.43) (2020-02-04)
 
 

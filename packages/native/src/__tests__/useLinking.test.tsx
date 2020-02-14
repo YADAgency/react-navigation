@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NavigationContainerRef } from '@react-navigation/core';
+import { NavigationContainerRef } from '@yadagency/react-navigation-core';
 import { render } from 'react-native-testing-library';
 import useLinking from '../useLinking';
 

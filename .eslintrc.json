@@ -3,13 +3,13 @@
   "settings": {
     "react": { "version": "16" },
     "import/core-modules": [
-      "@react-navigation/core",
+      "@yadagency/react-navigation-core",
       "@react-navigation/native",
       "@react-navigation/routers",
       "@react-navigation/compat",
       "@react-navigation/stack",
       "@react-navigation/native-stack",
-      "@react-navigation/drawer",
+      "@yadagency/react-navigation-drawer",
       "@react-navigation/bottom-tabs",
       "@react-navigation/material-top-tabs",
       "@react-navigation/material-bottom-tabs"

@@ -5,7 +5,7 @@ import {
   NavigationContainerRef,
   NavigationState,
   getActionFromState,
-} from '@react-navigation/core';
+} from '@yadagency/react-navigation-core';
 import { LinkingOptions } from './types';
 
 const getStateLength = (state: NavigationState) => {

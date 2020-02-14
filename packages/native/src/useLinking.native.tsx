@@ -4,7 +4,7 @@ import {
   getActionFromState,
   getStateFromPath as getStateFromPathDefault,
   NavigationContainerRef,
-} from '@react-navigation/core';
+} from '@yadagency/react-navigation-core';
 import { LinkingOptions } from './types';
 
 let isUsingLinking = false;

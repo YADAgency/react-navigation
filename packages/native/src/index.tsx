@@ -1,4 +1,4 @@
-export * from '@react-navigation/core';
+export * from '@yadagency/react-navigation-core';
 
 export { default as NavigationContainer } from './NavigationContainer';
 export { default as NavigationNativeContainer } from './NavigationNativeContainer';

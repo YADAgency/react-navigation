@@ -1,7 +1,7 @@
 import {
   getStateFromPath as getStateFromPathDefault,
   getPathFromState as getPathFromStateDefault,
-} from '@react-navigation/core';
+} from '@yadagency/react-navigation-core';
 
 export type Theme = {
   dark: boolean;

@@ -3,7 +3,7 @@ import {
   BaseNavigationContainer,
   NavigationContainerProps,
   NavigationContainerRef,
-} from '@react-navigation/core';
+} from '@yadagency/react-navigation-core';
 import ThemeProvider from './theming/ThemeProvider';
 import DefaultTheme from './theming/DefaultTheme';
 import useBackButton from './useBackButton';

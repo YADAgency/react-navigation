@@ -29,7 +29,7 @@ import {
 import {
   createDrawerNavigator,
   DrawerNavigationProp,
-} from '@react-navigation/drawer';
+} from '@yadagency/react-navigation-drawer';
 import {
   createStackNavigator,
   Assets as StackAssets,

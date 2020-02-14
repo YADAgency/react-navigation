@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NavigationContainerRef } from '@react-navigation/core';
+import { NavigationContainerRef } from '@yadagency/react-navigation-core';
 import { BackHandler } from 'react-native';
 
 export default function useBackButton(

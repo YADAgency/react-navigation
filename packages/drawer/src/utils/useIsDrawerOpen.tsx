@@ -11,7 +11,7 @@ import { DrawerNavigationProp } from '../types';
 export default function useIsDrawerOpen() {
   const navigation = useNavigation();
 
-  let drawer = navigation as DrawerNavigationProp<ParamListBase>;
+  let drawer = navigation as DrawerNavigationProp<ParamListBase> | undefined;
 
   // The screen might be inside another navigator such as stack nested in drawer
   // We need to find the closest drawer navigator and add the listener there
@@ -28,6 +28,10 @@ export default function useIsDrawerOpen() {
   );
 
   React.useEffect(() => {
+    if (!drawer) {
+      return;
+    }
+
     const unsubscribe = drawer.addListener('state', e => {
       setIsDrawerOpen(
         Boolean(e.data.state.history.find(it => it.type === 'drawer'))

@@ -67,7 +67,7 @@ type Props = {
 /**
  * A component used to show an action item with an icon and a label in a navigation drawer.
  */
-export default function DrawerItem(props: Props) {
+export default React.forwardRef<View, Props>(function DrawerItem(props, ref) {
   const { colors } = useTheme();
 
   const {
@@ -105,6 +105,7 @@ export default function DrawerItem(props: Props) {
 
   return (
     <View
+      ref={ref}
       collapsable={false}
       {...rest}
       style={[styles.container, { borderRadius, backgroundColor }, style]}
@@ -147,7 +148,7 @@ export default function DrawerItem(props: Props) {
       </TouchableItem>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

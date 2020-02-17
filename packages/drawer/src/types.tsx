@@ -1,4 +1,4 @@
-import { StyleProp, ViewStyle, TextStyle } from 'react-native';
+import { StyleProp, ViewStyle, TextStyle, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Route,
@@ -132,6 +132,11 @@ export type DrawerNavigationOptions = {
    * Defaults to `false`.
    */
   unmountOnBlur?: boolean;
+
+  /**
+   * Ref to the corresponding DrawerItem component.
+   */
+  drawerItemRef?: React.Ref<View>;
 };
 
 export type DrawerContentComponentProps<T = DrawerContentOptions> = T & {

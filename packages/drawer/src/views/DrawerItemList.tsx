@@ -33,12 +33,17 @@ export default function DrawerItemList({
 }: Props) {
   return (state.routes.map((route, i) => {
     const focused = i === state.index;
-    const { title, drawerLabel, drawerIcon, hidden } = descriptors[
-      route.key
-    ].options;
+    const {
+      title,
+      drawerLabel,
+      drawerIcon,
+      hidden,
+      drawerItemRef,
+    } = descriptors[route.key].options;
 
     return (
       <DrawerItem
+        ref={drawerItemRef}
         key={route.key}
         label={
           drawerLabel !== undefined

@@ -93,6 +93,10 @@ type Props = {
   renderSceneContent: Renderer;
   renderHeader: () => React.ReactNode;
   gestureHandlerProps?: React.ComponentProps<typeof PanGestureHandler>;
+  /**
+   * Called when the drawer finished opening or closing, i.e. once the animation has finished.
+   */
+  onDrawerOpened?: (opened: boolean) => void;
 };
 
 /**
@@ -331,6 +335,9 @@ export default class DrawerView extends React.PureComponent<Props> {
             // Sync drawer's state after animation finished
             // This shouldn't be necessary, but there seems to be an issue on iOS
             this.toggleDrawer(this.props.open);
+          }
+          if (this.props.onDrawerOpened) {
+            this.props.onDrawerOpened(open);
           }
         }),
       ]),
